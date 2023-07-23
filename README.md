@@ -7,15 +7,15 @@ AssetMgr is designed to run as a Docker container. The following docker-compose 
 version: '3'
 services:
   assetmgr:
-    image: 'fanman03/assetmgr:1.0'
+    image: 'fanman03/assetmgr:1.1.0'
     restart: always
     container_name: "assetmgr"
     ports:
       - '3002:3002'
     environment:
       - MONGODB_URI=mongodb+srv://your_connection_string_goes_here
-      - BASE_DOMAIN="http://example.com"
-      - APP_NAME="Asset Management"
+      - BASE_DOMAIN=http://example.com
+      - APP_NAME=Asset Management
 ```
 
 ## Adding Assets
