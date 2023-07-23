@@ -1,0 +1,133 @@
+<nav class="navbar navbar-expand-lg bg-primary">
+    <div class="container">
+        <a class="navbar-brand text-white" href="/"><i class="bi bi-pc-display me-2"></i>{{{ appName }}}</a>
+        <div class="collapse navbar-collapse flex-row-reverse" id="navbarSupportedContent">
+            <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" id="search">
+            </form>
+        </div>
+    </div>
+</nav>
+<div class="container">
+    <div class="d-flex justify-content-between">
+        <h1 class="display-4 fw-normal my-3">Asset List</h1>
+        <div class="mt-4">
+            <label for="sortDropdown" class="form-label">Sort:</label>
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" id="sortDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Default
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" onclick="reSort('Default',assets)">Default</a></li>
+                    <li><a class="dropdown-item" onclick="reSort('Oldest',assets)">Oldest</a></li>
+                    <li><a class="dropdown-item" onclick="reSort('Newest',assets)">Newest</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <table class="table" id="assetTable">
+        <thead>
+            <th scope="col">Status</th>
+            <th scope="col">Asset Tag</th>
+            <th scope="col">Brand</th>
+            <th scope="col">Model</th>
+            <th scope="col">Description</th>
+        </thead>
+        <tbody id="assetList">
+        </tbody>
+    </table>
+    <h3 class="text-center" id="searchError">{{{ errorText }}}</h3>
+</div>
+<script>
+    let assets = {{{ assetsJson }}};
+    let currentSort = 'Default';
+    let search_term = '';
+    $("#searchError").hide();
+
+    reSort(currentSort,assets);
+
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+    const search = document.getElementById('search');
+    search.addEventListener('input', (event) => {
+        filteredData = assets.filter((item) => {
+            return (
+                item._id.toLowerCase().includes(search_term) ||
+                item.Model.toLowerCase().includes(search_term) ||
+                item.Brand.toLowerCase().includes(search_term) ||
+                item.Description.toLowerCase().includes(search_term)
+            );
+        });
+        search_term = event.target.value.toLowerCase();
+        if(filteredData.length > 0){
+            $("#assetTable").show();
+            $("#searchError").hide();
+            reSort(currentSort,filteredData);
+        } else {
+            $("#assetTable").hide();
+            $("#searchError").show();
+        }
+    });
+
+    function statusConverter(status) {
+        if (status === undefined) {
+            return '<i class="bi-question-circle-fill" data-bs-toggle="tooltip" data-bs-title="Unknown" data-bs-placement="right"></i>';
+        } else if (status === 0) {
+            return '<i class="bi bi-check-circle-fill text-info" data-bs-toggle="tooltip" data-bs-title="Spare" data-bs-placement="right"></i>';
+        } else if (status === 1) {
+            return '<i class="bi bi-check-circle-fill text-success" data-bs-toggle="tooltip" data-bs-title="In Service" data-bs-placement="right"></i>';
+        } else if (status === 2) {
+            return '<i class="bi bi-clock-fill text-warning" data-bs-toggle="tooltip" data-bs-title="Retired" data-bs-placement="right"></i>';
+        } else if (status === 3) {
+            return '<i class="bi bi-currency-exchange text-warning" data-bs-toggle="tooltip" data-bs-title="Sold" data-bs-placement="right"></i>';
+        } else if (status === 4) {
+            return '<i class="bi bi-question-circle-fill text-danger" data-bs-toggle="tooltip" data-bs-title="Lost" data-bs-placement="right"></i>';
+        } else if (status === 5) {
+            return '<i class="bi bi-exclamation-circle-fill text-danger" data-bs-toggle="tooltip" data-bs-title="Stolen" data-bs-placement="right"></i>';
+        } else {
+            return '<i class="bi bi-bug-fill text-danger" data-bs-toggle="tooltip" data-bs-title="Error" data-bs-placement="right"></i>';
+        }
+    }
+
+    function reSort(sortValue, assetList) {
+        $("#assetTable").show();
+        currentSort = sortValue;
+        //let sortValue = document.getElementById("sortDropdown").value;
+        if (sortValue == "Default") {
+            defaultSort(assetList);
+        } else if (sortValue == "Oldest") {
+            oldestSort(assetList);
+        } else if (sortValue == "Newest") {
+            newestSort(assetList);
+        }
+        $("#sortDropdown").text(sortValue);
+        $("#assetList").html("");
+        assetList.forEach(function (asset) {
+            $("#assetList").append('<tr><td>' + statusConverter(asset.Status) + '</td><td><a href="/' + asset._id + '"">' + asset._id + '</a></td><td>' + asset.Brand + '</td><td>' + asset.Model + '</td><td>' + asset.Description + '</td></th>')
+        });
+    }
+
+    function defaultSort(assetList) {
+        assetList.sort((a, b) => {
+            if (a.Status === b.Status) {
+                if (a.Brand === b.Brand) {
+                    return a.Model < b.Model ? -1 : 1
+                } else {
+                    return a.Brand < b.Brand ? -1 : 1
+                }
+            } else {
+                return a.Status < b.Status ? -1 : 1
+            }
+        });
+    }
+
+    function oldestSort(assetList) {
+        assetList.sort((a, b) => a.PurchaseNBSPDate - b.PurchaseNBSPDate);
+    }
+
+    function newestSort(assetList) {
+        assetList.sort((a, b) => b.PurchaseNBSPDate - a.PurchaseNBSPDate);
+    }
+
+</script>
