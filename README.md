@@ -47,7 +47,7 @@ The following table lists commonly used asset properties. Properties in bold ita
 | ***Model*** | Model of the asset. |
 | ***Description*** | Description of the asset. |
 | Image | Image to display in the UI of the asset, from the provided [image repository](https://github.com/Fanman03/asset-images). Must be in the format `Brand\\Device`. |
-| Purchase Date | Purchase date of the item, in Unix time. Will be automatically converted to a human-readable time string |
+| Purchase_Date | Purchase date of the item, in Unix time. Will be automatically converted to a human-readable time string |
 | Notes | Extended information field about the asset, supports Markdown. |
 | Serial_Number	| Serial number of the asset. If it is a valid Dell Service Tag, this property will be displayed as a hyperlink to the Dell page with information about the specific asset. |
 
