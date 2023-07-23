@@ -38,15 +38,16 @@ Assets are represented by MongoDB objects. The following is an example asset:
 }
 ```
 
-The following table lists commonly used asset properties. Properties in bold are required, while all others are optional. 
+The following table lists commonly used asset properties. Properties in bold italics are required, while all others are optional. 
 | Property  | Purpose |
 | ------------- | ------------- |
-| **_id** | Globally unique identifier for the asset. AssetMgr does not enforce any specific schema, but serial number, MAC ID, or sequential numbers are some reasonable choices. |
-| **Status** | Number describing the status of the device. `0` = Spare, `1` = In Service, `2` = Retired, `3` = Sold, `4` = Lost, `5` = Stolen. |
-| **Brand** | Brand name of the asset. |
-| **Model** | Model of the asset. |
-| **Description** | Description of the asset. |
+| ***_id*** | Globally unique identifier for the asset. AssetMgr does not enforce any specific schema, but serial number, MAC ID, or sequential numbers are some reasonable choices. |
+| ***Status*** | Number describing the status of the device. `0` = Spare, `1` = In Service, `2` = Retired, `3` = Sold, `4` = Lost, `5` = Stolen. |
+| ***Brand*** | Brand name of the asset. |
+| ***Model*** | Model of the asset. |
+| ***Description*** | Description of the asset. |
 | Image | Image to display in the UI of the asset, from the provided [image repository](https://github.com/Fanman03/asset-images). Must be in the format `Brand\\Device`. |
+| Purchase Date | Purchase date of the item, in Unix time. Will be automatically converted to a human-readable time string |
 | Notes | Extended information field about the asset, supports Markdown. |
 | Serial_Number	| Serial number of the asset. If it is a valid Dell Service Tag, this property will be displayed as a hyperlink to the Dell page with information about the specific asset. |
 
