@@ -1,4 +1,4 @@
-# AssetMgr
+# AssetManager
 A simple, locally-hosted asset management platform
 
 ## Setup
