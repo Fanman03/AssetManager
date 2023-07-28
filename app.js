@@ -6,6 +6,7 @@ const exphbs = require('express-handlebars');
 const path = require('path');
 const fs = require("fs");
 const handlebars = require("handlebars");
+const pjson = require('./package.json');
 
 const { MongoClient, MongoWriteConcernError } = require("mongodb");
 const crypto = require('crypto');
@@ -42,16 +43,16 @@ app.get('/', async (req, res) => {
     if (client != "invalid") {
         let assets = await getAllAssets();
         if (process.env.DISABLE_DARKMODE) {
-            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "No items exist matching that search term.", layout: "ignore-dark" });
+            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "No items exist matching that search term.","version":pjson.version, layout: "ignore-dark" });
         } else {
-            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "No items exist matching that search term." });
+            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "No items exist matching that search term.","version":pjson.version });
         }
     } else {
         let assets = undefined;
         if (process.env.DISABLE_DARKMODE) {
-            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "Unable to connect to database.", layout: "ignore-dark" });
+            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "Unable to connect to database.","version":pjson.version, layout: "ignore-dark" });
         } else {
-            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "Unable to connect to database." });
+            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "Unable to connect to database.","version":pjson.version });
         }
     }
 });
@@ -59,14 +60,14 @@ app.get('/', async (req, res) => {
 app.get('/:tag', async (req, res) => {
     let asset = await getAssetInfo(req.params.tag);
     if (process.env.DISABLE_DARKMODE) {
-        res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag, layout: "ignore-dark" });
+        res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag,"version":pjson.version, layout: "ignore-dark" });
     } else {
-        res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag });
+        res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag,"version":pjson.version });
     }
 });
 
 app.get('/i/:tag', async (req, res) => {
-    res.render('barcode', { "appName": APP_NAME, "id": req.params.tag, "domain": BASE_DOMAIN, layout: "ignore-dark" });
+    res.render('barcode', { "appName": APP_NAME, "id": req.params.tag, "domain": BASE_DOMAIN,"version":pjson.version, layout: "ignore-dark" });
 });
 
 app.listen(3002);
