@@ -7,7 +7,7 @@ AssetMgr is designed to run as a Docker container. The following docker-compose 
 version: '3'
 services:
   assetmgr:
-    image: 'fanman03/assetmgr:1.1.0'
+    image: 'fanman03/assetmgr:1.2.0'
     restart: always
     container_name: "assetmgr"
     ports:
