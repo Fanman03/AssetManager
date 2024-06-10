@@ -20,6 +20,7 @@ try {
 
 const BASE_DOMAIN = process.env.BASE_DOMAIN;
 const APP_NAME = process.env.APP_NAME;
+const TAG_URL = process.env.TAG_URL;
 
 handlebars.registerHelper('ifEquals', function (arg1, arg2, options) {
     return (arg1 == arg2) ? options.fn(this) : options.inverse(this);
@@ -34,6 +35,7 @@ app.use('/css', express.static(path.join(__dirname, './node_modules/bootstrap/di
 app.use('/css', express.static(path.join(__dirname, './node_modules/bootstrap-icons/font')));
 app.use('/js', express.static(path.join(__dirname, './node_modules/bootstrap/dist/js')));
 app.use('/js', express.static(path.join(__dirname, './node_modules/jquery/dist')));
+app.use('/js', express.static(path.join(__dirname, './node_modules/bwip-js/dist')));
 app.use('/js', express.static(path.join(__dirname, './node_modules/@popperjs/core/dist/cjs')));
 app.use('/js', express.static(path.join(__dirname, './node_modules/showdown/dist')));
 app.use('/img', express.static(path.join(__dirname, './img')));
@@ -67,7 +69,8 @@ app.get('/:tag', async (req, res) => {
 });
 
 app.get('/i/:tag', async (req, res) => {
-    res.render('barcode', { "appName": APP_NAME, "id": req.params.tag, "domain": BASE_DOMAIN,"version":pjson.version, layout: "ignore-dark" });
+    let asset = await getAssetInfo(req.params.tag);
+    res.render('barcode', { "appName": APP_NAME, "id": req.params.tag, "assetJson": JSON.stringify(asset), "domain": BASE_DOMAIN, "tagUrl": TAG_URL, "version":pjson.version, layout: "ignore-dark" });
 });
 
 app.listen(3002);
