@@ -61,10 +61,18 @@ app.get('/', async (req, res) => {
 
 app.get('/:tag', async (req, res) => {
     let asset = await getAssetInfo(req.params.tag);
-    if (process.env.DISABLE_DARKMODE) {
-        res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag,"version":pjson.version, layout: "ignore-dark" });
+    if(asset == null) {
+        if (process.env.DISABLE_DARKMODE) {
+            res.render('notfound', { "appName": APP_NAME, "domain": BASE_DOMAIN, "id": req.params.tag,"version":pjson.version, layout: "ignore-dark" });
+        } else {
+            res.render('notfound', { "appName": APP_NAME, "domain": BASE_DOMAIN, "id": req.params.tag,"version":pjson.version });
+        }
     } else {
-        res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag,"version":pjson.version });
+        if (process.env.DISABLE_DARKMODE) {
+            res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag,"version":pjson.version, layout: "ignore-dark" });
+        } else {
+            res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag,"version":pjson.version });
+        }
     }
 });
 
