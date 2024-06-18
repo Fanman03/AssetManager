@@ -31,6 +31,7 @@ app.set('view engine', 'hbs');
 
 app.set('views', './views');
 app.use('/css', express.static(path.join(__dirname, './css')));
+app.use('/js', express.static(path.join(__dirname, './js')));
 app.use('/css', express.static(path.join(__dirname, './node_modules/bootstrap/dist/css')));
 app.use('/css', express.static(path.join(__dirname, './node_modules/bootstrap-icons/font')));
 app.use('/js', express.static(path.join(__dirname, './node_modules/bootstrap/dist/js')));
@@ -45,40 +46,40 @@ app.get('/', async (req, res) => {
     if (client != "invalid") {
         let assets = await getAllAssets();
         if (process.env.DISABLE_DARKMODE) {
-            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "No items exist matching that search term.","version":pjson.version, layout: "ignore-dark" });
+            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "No items exist matching that search term.", "version": pjson.version, layout: "ignore-dark" });
         } else {
-            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "No items exist matching that search term.","version":pjson.version });
+            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "No items exist matching that search term.", "version": pjson.version });
         }
     } else {
         let assets = undefined;
         if (process.env.DISABLE_DARKMODE) {
-            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "Unable to connect to database.","version":pjson.version, layout: "ignore-dark" });
+            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "Unable to connect to database.", "version": pjson.version, layout: "ignore-dark" });
         } else {
-            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "Unable to connect to database.","version":pjson.version });
+            res.render('list', { "appName": APP_NAME, "assets": assets, "assetsJson": JSON.stringify(assets), "errorText": "Unable to connect to database.", "version": pjson.version });
         }
     }
 });
 
 app.get('/:tag', async (req, res) => {
     let asset = await getAssetInfo(req.params.tag);
-    if(asset == null) {
+    if (asset == null) {
         if (process.env.DISABLE_DARKMODE) {
-            res.render('notfound', { "appName": APP_NAME, "domain": BASE_DOMAIN, "id": req.params.tag,"version":pjson.version, layout: "ignore-dark" });
+            res.render('notfound', { "appName": APP_NAME, "domain": BASE_DOMAIN, "id": req.params.tag, "version": pjson.version, layout: "ignore-dark" });
         } else {
-            res.render('notfound', { "appName": APP_NAME, "domain": BASE_DOMAIN, "id": req.params.tag,"version":pjson.version });
+            res.render('notfound', { "appName": APP_NAME, "domain": BASE_DOMAIN, "id": req.params.tag, "version": pjson.version });
         }
     } else {
         if (process.env.DISABLE_DARKMODE) {
-            res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag,"version":pjson.version, layout: "ignore-dark" });
+            res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag, "version": pjson.version, layout: "ignore-dark" });
         } else {
-            res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag,"version":pjson.version });
+            res.render('asset', { "appName": APP_NAME, "asset": asset, "domain": BASE_DOMAIN, "assetJson": JSON.stringify(asset), "id": req.params.tag, "version": pjson.version });
         }
     }
 });
 
 app.get('/i/:tag', async (req, res) => {
     let asset = await getAssetInfo(req.params.tag);
-    res.render('barcode', { "appName": APP_NAME, "id": req.params.tag, "assetJson": JSON.stringify(asset), "domain": BASE_DOMAIN, "tagUrl": TAG_URL, "version":pjson.version, layout: "ignore-dark" });
+    res.render('barcode', { "appName": APP_NAME, "id": req.params.tag, "assetJson": JSON.stringify(asset), "domain": BASE_DOMAIN, "tagUrl": TAG_URL, "version": pjson.version, layout: "ignore-dark" });
 });
 
 app.listen(3002);
