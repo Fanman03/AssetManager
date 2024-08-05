@@ -1,6 +1,6 @@
 {
   "name": "assetmgr",
-  "version": "1.4",
+  "version": "1.4.1",
   "description": "Internal asset management tool",
   "main": "app.js",
   "scripts": {
