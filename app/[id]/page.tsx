@@ -63,8 +63,13 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
               </p>
             )}
             <p>
-              <a className="btn btn-primary" href={`/i/${asset._id}`}>
+              <a className="btn btn-primary me-3" href={`/i/${asset._id}`}>
+                <i className="bi bi-upc-scan me-2"></i>
                 View Barcode
+              </a>
+              <a className="btn btn-warning" href={`/edit/${asset._id}`}>
+                <i className="bi bi-pencil me-2"></i>
+                Edit Asset
               </a>
             </p>
           </div>

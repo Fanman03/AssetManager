@@ -7,6 +7,9 @@ import { Asset } from '@/types/asset';
 const roboto = Roboto({ weight: ['400'], subsets: ['latin'] });
 const robotoMono = Roboto_Mono({ weight: ['400'], subsets: ['latin'] });
 
+const baseDomain:string  = process.env.NEXT_PUBLIC_BASE_DOMAIN!;
+const tagUrl:string  = process.env.NEXT_PUBLIC_TAG_URL!;
+
 declare const DATAMatrix: (opts: { msg: string; dim: number }) => SVGSVGElement;
 
 interface Props {
@@ -46,10 +49,10 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
       ctx.font = '100px "Roboto"';
       ctx.fillText(Brand, 640, 280);
       ctx.fillText(Model, 640, 380);
-      ctx.fillText('www.pendleton.cc', 640, 530);
+      ctx.fillText(tagUrl, 640, 530);
 
       // Barcode path
-      const svgNode = DATAMatrix({ msg: `a.pendleton.cc/${_id}`, dim: 100 });
+      const svgNode = DATAMatrix({ msg: `baseDomain/${_id}`, dim: 100 });
       const svgPath = svgNode?.querySelector('path')?.getAttribute('d');
 
       if (svgPath) {
