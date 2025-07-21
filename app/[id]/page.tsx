@@ -1,5 +1,6 @@
 import { getAssetById } from '@/lib/db';
 import { format } from 'date-fns';
+import Navbar from '@/components/Navbar';
 
 const statusIcon = (status?: number) => {
   if (status === undefined) {
@@ -24,13 +25,13 @@ const statusIcon = (status?: number) => {
   return <i className={`bi bi-${data.icon} ${data.className}`} title={data.label} />;
 };
 
-export default async function AssetPage({params}: {params: Promise<{ id: string }>}) {
+export default async function AssetPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const asset = await getAssetById(id);
 
   if (!asset) return <p>Asset not found.</p>;
 
-  const { _id, Brand, Model, Status, Purchase_Date, Image, ...rest } = asset;
+  const { _id, Brand, Model, Status, Purchase_Date, Image, Description, ...rest } = asset;
 
   // Fix for backslashes in Image (replace \ with /)
   const safeImage = typeof Image === 'string' ? Image.replace(/\\/g, '/') : null;
@@ -41,24 +42,20 @@ export default async function AssetPage({params}: {params: Promise<{ id: string 
 
   return (
     <div>
-      <nav className="navbar navbar-expand-lg bg-primary">
-        <div className="container">
-          <a className="navbar-brand text-white" href="/">
-            <i className="bi bi-arrow-left me-2"></i>
-            <span>Back</span>
-          </a>
-        </div>
-      </nav>
+      <Navbar variant='backBtn' />
       <div className="container mt-5">
         <div className="d-flex justify-content-between align-items-start">
           <div>
             <h1>
-              {Brand} {Model} {statusIcon(Status)}
+              {statusIcon(Status)} {Brand} {Model} - <span>{_id}</span>
             </h1>
-            <p>
-              <strong>ID:</strong> {_id}
-            </p>
 
+            {Description && (
+              <p>
+                <strong>Description:</strong>{' '}<br />
+                {Description}
+              </p>
+            )}
             {Purchase_Date && (
               <p>
                 <strong>Purchase Date:</strong>{' '}
@@ -91,9 +88,27 @@ export default async function AssetPage({params}: {params: Promise<{ id: string 
               <tr key={key}>
                 <th>{key.replaceAll('_', ' ')}</th>
                 <td>
-                  {typeof value === 'string' || typeof value === 'number'
-                    ? value.toString()
-                    : JSON.stringify(value)}
+                  {(() => {
+                    const strVal = value?.toString?.() || '';
+
+                    // Link to another asset if value starts with $
+                    if (strVal.startsWith('$')) {
+                      const targetId = strVal.slice(1);
+                      return <a href={`/${targetId}`}>{targetId}</a>;
+                    }
+
+                    // Special Dell support link for Serial/Serial_Number
+                    const keyLower = key.toLowerCase();
+                    const isSerialKey = keyLower === 'serial' || keyLower === 'serial_number';
+
+                    if (Brand?.toLowerCase() === 'dell' && isSerialKey && strVal) {
+                      const dellUrl = `https://www.dell.com/support/home/en-us/product-support/servicetag/${strVal}/overview`;
+                      return <a href={dellUrl} target="_blank" rel="noopener noreferrer">{strVal}</a>;
+                    }
+
+                    // Default rendering
+                    return strVal;
+                  })()}
                 </td>
               </tr>
             ))}

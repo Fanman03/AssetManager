@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import type { Asset } from '@/types/asset';
+import Navbar from './Navbar';
 
 type Props = {
   initialAssets: Asset[];
@@ -45,40 +46,35 @@ export default function ClientAssetList({ initialAssets }: Props) {
   }, [sortOption, filteredAssets]);
 
   const statusIcon = (status?: number) => {
-    const iconMap: { [key: number]: string } = {
-      0: 'bi-check-circle-fill icon-blue" title="Spare',
-      1: 'bi-check-circle-fill text-success" title="In Service',
-      2: 'bi-clock-fill text-warning" title="Retired',
-      3: 'bi-currency-exchange text-warning" title="Sold',
-      4: 'bi-question-circle-fill text-danger" title="Lost',
-      5: 'bi-exclamation-circle-fill text-danger" title="Stolen',
+    const map: Record<number, { icon: string; className: string; label: string }> = {
+      0: { icon: 'check-circle-fill', className: 'text-info', label: 'Spare' },
+      1: { icon: 'check-circle-fill', className: 'text-success', label: 'In Service' },
+      2: { icon: 'clock-fill', className: 'text-warning', label: 'Retired' },
+      3: { icon: 'currency-exchange', className: 'text-warning', label: 'Sold' },
+      4: { icon: 'question-circle-fill', className: 'text-danger', label: 'Lost' },
+      5: { icon: 'exclamation-circle-fill', className: 'text-danger', label: 'Stolen' },
     };
-    const icon = iconMap[status ?? -1] || 'bi-bug-fill text-danger" title="Error';
-    return <i className={`bi ${icon}`} data-bs-toggle="tooltip" data-bs-placement="right" />;
+
+    const data = map[status ?? -1] || {
+      icon: 'bug-fill',
+      className: 'text-danger',
+      label: 'Error',
+    };
+
+    return (
+      <i
+        className={`bi bi-${data.icon} ${data.className}`}
+        title={data.label}
+        data-bs-toggle="tooltip"
+        data-bs-placement="right"
+      />
+    );
   };
 
-  return (
-    <>
-      <nav className="navbar navbar-expand-lg bg-primary">
-        <div className="container">
-          <a className="navbar-brand text-white" href="/">
-            <i className="bi bi-pc-display me-2"></i><span>{appName}</span>
-          </a>
-          <div className="collapse navbar-collapse flex-row-reverse">
-            <form className="form-inline my-2 my-lg-0">
-              <input
-                className="form-control me-sm-2"
-                type="search"
-                placeholder="Search"
-                aria-label="Search"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
-            </form>
-          </div>
-        </div>
-      </nav>
 
+  return (
+    <main>
+      <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <div className="container">
         <div className="d-flex justify-content-between align-items-center mt-4 mb-3">
           <h1 className="display-4 fw-normal">Asset List</h1>
@@ -138,6 +134,6 @@ export default function ClientAssetList({ initialAssets }: Props) {
           <h3 className="text-center text-muted">No results found.</h3>
         )}
       </div>
-    </>
+    </main>
   );
 }
