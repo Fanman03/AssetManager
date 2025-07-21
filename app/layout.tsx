@@ -1,6 +1,7 @@
 // app/layout.tsx
 import './globals.css'; // You can add bootstrap and custom styles here
 import Script from 'next/script';
+import BootstrapClient from "@/components/BootstrapClient";
 
 export const metadata = {
   title: 'Asset Manager',
@@ -14,8 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/img/favicon.png" type="image/png" />
       </head>
       <body className="d-flex flex-column h-100">
-        {/* <Script src="/js/bootstrap.bundle.min.js" strategy="afterInteractive" />
-        <Script src="/js/jquery.min.js" strategy="afterInteractive" /> */}
+        <BootstrapClient />
         <main className="mb-3">{children}</main>
         <Script id="theme-script" strategy="afterInteractive">
           {`if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {

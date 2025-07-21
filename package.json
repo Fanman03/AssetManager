@@ -9,15 +9,20 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",
+    "classnames": "^2.5.1",
+    "date-fns": "^4.1.0",
     "mongodb": "^6.17.0",
     "next": "15.4.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-markdown": "^10.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bootstrap": "^5.2.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

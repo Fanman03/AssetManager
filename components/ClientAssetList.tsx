@@ -9,6 +9,7 @@ type Props = {
 };
 
 export default function ClientAssetList({ initialAssets }: Props) {
+  let appName = process.env.NEXT_PUBLIC_APP_NAME;
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('Default');
   const [filteredAssets, setFilteredAssets] = useState(initialAssets);
@@ -61,7 +62,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
       <nav className="navbar navbar-expand-lg bg-primary">
         <div className="container">
           <a className="navbar-brand text-white" href="/">
-            <i className="bi bi-pc-display me-2"></i>IT Assets
+            <i className="bi bi-pc-display me-2"></i><span>{appName}</span>
           </a>
           <div className="collapse navbar-collapse flex-row-reverse">
             <form className="form-inline my-2 my-lg-0">

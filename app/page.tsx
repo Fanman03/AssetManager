@@ -1,6 +1,5 @@
 import React from 'react';
 import { getAllAssets } from '@/lib/db';
-import Link from 'next/link';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import ClientAssetList from '@/components/ClientAssetList';
 
