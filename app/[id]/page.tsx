@@ -1,6 +1,7 @@
 import { getAssetById } from '@/lib/db';
 import { format } from 'date-fns';
 import Navbar from '@/components/Navbar';
+import AssetDeleteButton from '@/components/AssetDeleteButton';
 
 const statusIcon = (status?: number) => {
   if (status === undefined) {
@@ -67,10 +68,11 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                 <i className="bi bi-upc-scan me-2"></i>
                 View Barcode
               </a>
-              <a className="btn btn-warning" href={`/edit/${asset._id}`}>
+              <a className="btn btn-warning me-3" href={`/edit/${asset._id}`}>
                 <i className="bi bi-pencil me-2"></i>
                 Edit Asset
               </a>
+              <AssetDeleteButton assetId={_id} />
             </p>
           </div>
 

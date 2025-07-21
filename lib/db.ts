@@ -30,3 +30,9 @@ export async function getAssetById(id: string): Promise<Asset | null> {
     _id: doc._id.toString(),
   } as Asset;
 }
+
+export async function deleteAssetById(id: string): Promise<boolean> {
+  const db = await dbPromise;
+  const result = await db.collection<Asset>('assets').deleteOne({ _id: id });
+  return result.deletedCount === 1;
+}

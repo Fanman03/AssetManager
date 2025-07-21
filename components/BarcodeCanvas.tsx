@@ -52,7 +52,7 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
       ctx.fillText(tagUrl, 640, 530);
 
       // Barcode path
-      const svgNode = DATAMatrix({ msg: `baseDomain/${_id}`, dim: 100 });
+      const svgNode = DATAMatrix({ msg: `${baseDomain}/${_id}`, dim: 100 });
       const svgPath = svgNode?.querySelector('path')?.getAttribute('d');
 
       if (svgPath) {
