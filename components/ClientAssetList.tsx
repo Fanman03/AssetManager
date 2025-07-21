@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import type { Asset } from '@/types/asset';
 import Navbar from './Navbar';
+import FloatingAddButton from './FloatingAddButton';
 
 type Props = {
   initialAssets: Asset[];
@@ -102,6 +103,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
 
   return (
     <main>
+      <FloatingAddButton/>
       <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <div className="container">
         <div className="row mt-4 mb-3 g-2">

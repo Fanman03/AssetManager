@@ -36,3 +36,19 @@ export async function deleteAssetById(id: string): Promise<boolean> {
   const result = await db.collection<Asset>('assets').deleteOne({ _id: id });
   return result.deletedCount === 1;
 }
+
+export async function insertAsset(data: Asset): Promise<Asset> {
+  const db = await dbPromise;
+
+  if (!data._id) {
+    throw new Error('Asset _id is required');
+  }
+
+  const result = await db.collection<Asset>('assets').insertOne(data);
+
+  if (!result.acknowledged) {
+    throw new Error('Failed to insert asset');
+  }
+
+  return data;
+}

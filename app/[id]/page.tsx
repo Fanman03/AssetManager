@@ -48,7 +48,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
         <div className="d-flex justify-content-between align-items-start">
           <div>
             <h1>
-              {statusIcon(Status)} {Brand} {Model} - <span>{_id}</span>
+              {statusIcon(Status)} {Brand} {Model} | <span className='assetTag'>{_id}</span>
             </h1>
 
             {Description && (
