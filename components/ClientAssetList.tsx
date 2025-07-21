@@ -14,6 +14,12 @@ export default function ClientAssetList({ initialAssets }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('Default');
   const [filteredAssets, setFilteredAssets] = useState(initialAssets);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortOption]);
 
   useEffect(() => {
     const term = searchTerm.toLowerCase();
@@ -44,6 +50,28 @@ export default function ClientAssetList({ initialAssets }: Props) {
     }
     return copy;
   }, [sortOption, filteredAssets]);
+
+  const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredAssets.length);
+
+  const paginatedAssets = sortedAssets.slice(startIndex, endIndex);
+
+  // Ellipsis page logic
+  const getPageNumbers = (current: number, total: number): (number | string)[] => {
+    const delta = 2;
+    const range: (number | string)[] = [];
+    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+      range.push(i);
+    }
+
+    if (current - delta > 2) range.unshift('...');
+    if (current + delta < total - 1) range.push('...');
+
+    range.unshift(1);
+    if (total > 1) range.push(total);
+    return range;
+  };
 
   const statusIcon = (status?: number) => {
     const map: Record<number, { icon: string; className: string; label: string }> = {
@@ -76,33 +104,120 @@ export default function ClientAssetList({ initialAssets }: Props) {
     <main>
       <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <div className="container">
-        <div className="d-flex justify-content-between align-items-center mt-4 mb-3">
-          <h1 className="display-4 fw-normal">Asset List</h1>
-          <div>
-            <label htmlFor="sortDropdown" className="form-label me-2">Sort:</label>
-            <div className="dropdown d-inline">
-              <button
-                className="btn btn-primary dropdown-toggle"
-                id="sortDropdown"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                {sortOption}
-              </button>
-              <ul className="dropdown-menu">
-                {['Default', 'Oldest', 'Newest'].map(opt => (
-                  <li key={opt}>
-                    <button className="dropdown-item" onClick={() => setSortOption(opt)}>
-                      {opt}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+        <div className="row mt-4 mb-3 g-2">
+          <div className="col-12 col-md d-flex align-items-center justify-content-md-start justify-content-between">
+            <h1 className="display-6 fw-normal mb-0">Asset List</h1>
+          </div>
+
+          <div className="col-12 col-md-auto">
+            <div className="d-flex flex-column flex-md-row align-items-md-center gap-2">
+              {/* Sort Dropdown */}
+              <div className="d-flex align-items-center">
+                <label htmlFor="sortDropdown" className="form-label me-2 mb-0">Sort:</label>
+                <div className="dropdown">
+                  <button
+                    className="btn btn-primary dropdown-toggle"
+                    id="sortDropdown"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    {sortOption}
+                  </button>
+                  <ul className="dropdown-menu">
+                    {['Default', 'Oldest', 'Newest'].map(opt => (
+                      <li key={opt}>
+                        <button className="dropdown-item" onClick={() => setSortOption(opt)}>
+                          {opt}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Items per Page Dropdown */}
+              <div className="d-flex align-items-center">
+                <label htmlFor="perPageSelect" className="form-label me-2 mb-0">Items per page:</label>
+                <div className="dropdown">
+                  <button
+                    className="btn btn-primary dropdown-toggle"
+                    id="perPageSelect"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    {itemsPerPage}
+                  </button>
+                  <ul className="dropdown-menu">
+                    {[25, 50, 100].map(n => (
+                      <li key={n}>
+                        <button
+                          className="dropdown-item"
+                          onClick={() => {
+                            setItemsPerPage(n);
+                            setCurrentPage(1);
+                          }}
+                        >
+                          {n}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
+        <div className='d-flex justify-content-between align-items-center'>
+          {sortedAssets.length > 0 && (
+            <p className="text-muted mt-2">
+              Showing {startIndex + 1}–{endIndex} of {sortedAssets.length} item{sortedAssets.length !== 1 && 's'}
+            </p>
+          )}
+          <nav>
+            <ul className="pagination mb-0">
+              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                <button
+                  className="page-link text-primary"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  aria-label="Previous"
+                >
+                  <i className="bi bi-chevron-left" />
+                </button>
+              </li>
+
+              {getPageNumbers(currentPage, totalPages).map((page, index) =>
+                page === '...' ? (
+                  <li key={`ellipsis-${index}`} className="page-item disabled">
+                    <span className="page-link">…</span>
+                  </li>
+                ) : (
+                  <li key={page} className={`page-item ${page === currentPage ? 'active' : ''}`}>
+                    <button
+                      className="page-link"
+                      style={{ backgroundColor: page === currentPage ? '#0d6efd' : undefined, color: page === currentPage ? 'white' : undefined }}
+                      onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  </li>
+                )
+              )}
+
+              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                <button
+                  className="page-link text-primary"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  aria-label="Next"
+                >
+                  <i className="bi bi-chevron-right" />
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
         {sortedAssets.length > 0 ? (
           <div className="table-responsive">
             <table className="table table-hover">
@@ -116,7 +231,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {sortedAssets.map(asset => (
+                {paginatedAssets.map(asset => (
                   <tr key={asset._id}>
                     <td>{statusIcon(asset.Status)}</td>
                     <td>
@@ -134,6 +249,6 @@ export default function ClientAssetList({ initialAssets }: Props) {
           <h3 className="text-center text-muted">No results found.</h3>
         )}
       </div>
-    </main>
+    </main >
   );
 }
