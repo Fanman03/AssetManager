@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { Asset } from '@/types/asset';
 import Navbar from './Navbar';
 import FloatingAddButton from './FloatingAddButton';
+import markdownit from 'markdown-it'
 
 type Props = {
   initialAssets: Asset[];
@@ -17,6 +18,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
   const [filteredAssets, setFilteredAssets] = useState(initialAssets);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
+  const md = markdownit()
 
   useEffect(() => {
     setCurrentPage(1);
@@ -103,7 +105,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
 
   return (
     <main>
-      <FloatingAddButton/>
+      <FloatingAddButton />
       <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <div className="container">
         <div className="row mt-4 mb-3 g-2">
@@ -241,7 +243,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
                     </td>
                     <td>{asset.Brand}</td>
                     <td>{asset.Model}</td>
-                    <td>{asset.Description}</td>
+                    <td dangerouslySetInnerHTML={{ __html: md.renderInline(asset.Description) }} />
                   </tr>
                 ))}
               </tbody>

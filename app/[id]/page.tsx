@@ -2,6 +2,7 @@ import { getAssetById } from '@/lib/db';
 import { format } from 'date-fns';
 import Navbar from '@/components/Navbar';
 import AssetDeleteButton from '@/components/AssetDeleteButton';
+import markdownit from 'markdown-it'
 
 const statusIcon = (status?: number) => {
   if (status === undefined) {
@@ -29,10 +30,27 @@ const statusIcon = (status?: number) => {
 export default async function AssetPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const asset = await getAssetById(id);
+  const md = markdownit()
 
-  if (!asset) return <p>Asset not found.</p>;
+  if (!asset) {
+    return (
+      <>
+        <Navbar variant='backBtn' />
+        <div className="d-flex justify-content-center align-items-center" style={{ height: '80vh' }}>
+          <div className="card p-4 text-center" style={{ maxWidth: '400px' }}>
+            <h1 className="display-4">404</h1>
+            <h3 className="mb-3">Asset Not Found</h3>
+            <p className="text-muted">The asset you're looking for doesn't exist or has been removed.</p>
+            <a href="/" className="btn btn-primary mt-2">Back to Asset List</a>
+          </div>
+        </div>
+      </>
+    );
+  }
+
 
   const { _id, Brand, Model, Status, Purchase_Date, Image, Description, ...rest } = asset;
+
 
   // Fix for backslashes in Image (replace \ with /)
   const safeImage = typeof Image === 'string' ? Image.replace(/\\/g, '/') : null;
@@ -54,7 +72,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
             {Description && (
               <p>
                 <strong>Description:</strong>{' '}<br />
-                {Description}
+                <span dangerouslySetInnerHTML={{ __html: md.renderInline(Description) }} />
               </p>
             )}
             {Purchase_Date && (
