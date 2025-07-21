@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 // JWT secret — store securely
 const JWT_SECRET = process.env.JWT_SECRET!;
-const COOKIE_NAME = 'admin_auth';
+const COOKIE_NAME = 'auth_token';
 const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '').trim();
 
 export async function POST(request: NextRequest) {
