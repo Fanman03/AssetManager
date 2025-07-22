@@ -114,7 +114,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
           </div>
 
           <div className="col-12 col-md-auto">
-            <div className="d-flex flex-column flex-md-row align-items-md-center gap-2">
+            <div className="d-flex flex-column flex-md-row align-items-md-center gap-2 dropdown-control-row">
               {/* Sort Dropdown */}
               <div className="d-flex align-items-center">
                 <label htmlFor="sortDropdown" className="form-label me-2 mb-0">Sort:</label>

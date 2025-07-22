@@ -2,6 +2,7 @@ import { getAssetById } from '@/lib/db';
 import { format } from 'date-fns';
 import Navbar from '@/components/Navbar';
 import AssetDeleteButton from '@/components/AssetDeleteButton';
+import AssetCloneButton from '@/components/AssetCloneButton';
 import markdownit from 'markdown-it'
 
 const statusIcon = (status?: number) => {
@@ -65,8 +66,9 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
       <div className="container mt-5">
         <div className="d-flex justify-content-between align-items-start">
           <div>
-            <h1>
-              {statusIcon(Status)} {Brand} {Model} | <span className='assetTag'>{_id}</span>
+            <h1>{statusIcon(Status)}</h1>
+            <h1 className="assetTitle">
+              <span className='assetTag'>{_id}</span><span className="assetSeperator">-</span>{Brand} {Model}
             </h1>
 
             {Description && (
@@ -81,17 +83,6 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                 {format(new Date(Purchase_Date * 1000), 'MMMM d, yyyy')}
               </p>
             )}
-            <p>
-              <a className="btn btn-primary me-3" href={`/i/${asset._id}`}>
-                <i className="bi bi-upc-scan me-2"></i>
-                View Barcode
-              </a>
-              <a className="btn btn-warning me-3" href={`/edit/${asset._id}`}>
-                <i className="bi bi-pencil me-2"></i>
-                Edit Asset
-              </a>
-              <AssetDeleteButton assetId={_id} />
-            </p>
           </div>
 
           {imageUrl && (
@@ -103,7 +94,20 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
               />
             </div>
           )}
+
         </div>
+        <p>
+          <a className="btn btn-primary m-2 assetControlBtn" href={`/i/${asset._id}`}>
+            <i className="bi bi-upc-scan me-2"></i>
+            View Barcode
+          </a>
+          <a className="btn btn-warning m-2 assetControlBtn" href={`/edit/${asset._id}`}>
+            <i className="bi bi-pencil me-2"></i>
+            Edit Asset
+          </a>
+          <AssetDeleteButton assetId={_id} />
+          <AssetCloneButton assetId={_id} />
+        </p>
 
         <hr />
         <h4>Other Properties</h4>

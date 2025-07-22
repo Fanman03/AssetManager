@@ -9,3 +9,49 @@ body {
   font-family: 'Roboto Mono', monospace;
   font-size: 2.75rem;
 }
+
+.assetControlBtn {
+  min-width: 150px;
+}
+
+.assetTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.assetTitle .assetTag {
+  white-space: nowrap;
+}
+
+.assetSeperator {
+  margin-left: 2.5px;
+  margin-right: 2.5px;
+  visibility: hidden;
+  line-height: 0.1rem;
+}
+
+@media (max-width: 768px) {
+
+  #logoutBtn,
+  #loginBtn {
+    display: none;
+  }
+
+  #searchBar,
+  .searchBarContainer {
+    width: 100vw;
+  }
+
+  .dropdown-control-row {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap;
+    gap: 1rem;
+  }
+}
+
+#barcodeCanvas {
+  margin-top: 4rem;
+  margin-bottom: 4rem;
+}

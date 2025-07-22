@@ -39,7 +39,7 @@ export default function AssetDeleteButton({ assetId }: { assetId: string }) {
   };
 
   return (
-    <button className="btn btn-danger" onClick={handleDeleteClick}>
+    <button className="btn btn-danger m-2 assetControlBtn" onClick={handleDeleteClick}>
       <i className="bi bi-trash me-2" />
       Delete Asset
     </button>

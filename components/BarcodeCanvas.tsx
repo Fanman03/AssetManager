@@ -21,8 +21,6 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
   const [isDrawn, setIsDrawn] = useState(false);
 
   useEffect(() => {
-    console.log('DATAMatrix:', typeof DATAMatrix);
-
     const draw = async () => {
       const canvas = canvasRef.current;
       if (!canvas || typeof window === 'undefined') return;
@@ -80,20 +78,17 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
 
   return (
     <div
-      className="text-center"
-      style={{
-        backgroundColor: 'white',
-        padding: '2rem',
-        fontFamily: `${roboto.style.fontFamily}, ${robotoMono.style.fontFamily}`,
-      }}
+      className="text-center container"
     >
       <canvas
         ref={canvasRef}
+        className="col-md-8"
         width={1575}
         height={600}
         style={{ border: '1px solid #ccc', maxWidth: '100%' }}
+        id="barcodeCanvas"
       />
-      <div className="mt-3">
+      <div>
         <button
           className="btn btn-primary"
           onClick={downloadImage}

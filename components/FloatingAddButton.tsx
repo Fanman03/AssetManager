@@ -13,8 +13,8 @@ export default function FloatingAddButton() {
   return (
     <button
       onClick={handleClick}
-      aria-label="Add Asset"
-      title="Add Asset"
+      aria-label="Create New Asset"
+      title="Create New Asset"
       style={{
         position: 'fixed',
         bottom: 24,

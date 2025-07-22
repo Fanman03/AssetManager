@@ -70,19 +70,25 @@ const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right side group: search + login/logout */}
         {variant === 'default' ? (
-          <div className="d-flex align-items-center">
+          <div className="d-flex align-items-center searchBarContainer">
             <form
               className="form-inline my-2 my-lg-0 me-3"
+              id="searchBar"
               style={{ maxWidth: 400, width: '100%' }}
             >
-              <input
-                className="form-control"
-                type="search"
-                placeholder="Search"
-                aria-label="Search"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="input-group">
+                <span className="input-group-text">
+                  <i className="bi bi-search"></i>
+                </span>
+                <input
+                  className="form-control"
+                  type="search"
+                  placeholder="Search"
+                  aria-label="Search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </form>
 
             {authorized ? (

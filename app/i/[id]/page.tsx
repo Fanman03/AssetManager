@@ -17,13 +17,8 @@ export default async function BarcodePage({ params }: { params: Promise<{ id: st
   return (
     <>
       <Navbar variant='backBtn' />
-      <main
-        className={`${robotoMono.className}`}
-        style={{ backgroundColor: 'white', marginTop: '3rem', marginBottom: '3rem' }}
-      >
-        <Script src="/js/datamatrix.js" strategy="beforeInteractive" />
-
-        <BarcodeCanvas asset={asset} />
-      </main></>
+      <Script src="/js/datamatrix.js" strategy="beforeInteractive" />
+      <BarcodeCanvas asset={asset} />
+    </>
   );
 }
