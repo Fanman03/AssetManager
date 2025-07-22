@@ -1,7 +1,7 @@
 # AssetManager
 A simple, locally-hosted asset management platform
 
-[Try out a live demo here](https://asset-manager-umber.vercel.app/)
+[Try out a live demo here](https://jp-am.vercel.app/)
 
 Admin password: pass
 
