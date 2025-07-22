@@ -110,7 +110,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
         </p>
 
         <hr />
-        <h4>Other Properties</h4>
+        <h4>Asset Properties</h4>
         <table className="table table-striped">
           <tbody>
             {Object.entries(rest).map(([key, value]) => (

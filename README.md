@@ -20,3 +20,5 @@ services:
     restart: unless-stopped
 ```
 All that's needed to run the app is an empty MongoDB database named `asset-db` containing a collection named `assets`. 
+
+Once the app connects to your database, it will insert a few example items. Feel free to check them out for ideas, or delete them and start from scratch.
