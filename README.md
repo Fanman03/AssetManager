@@ -1,13 +1,17 @@
 # AssetManager
 A simple, locally-hosted asset management platform
 
+[Try out a live demo here](https://asset-manager-umber.vercel.app/)
+
+Admin password: pass
+
 ## Setup
 AssetManager is designed to run as a Docker container. The following docker-compose file can be used as a starting point.
 ```yaml
 version: '3.8'
 services:
   assetmanager:
-    image: jacklrpendleton/assetmanager:2.0.0
+    image: jacklrpendleton/assetmanager:latest
     ports:
       - '3002:3002'
     environment:
