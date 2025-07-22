@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 // JWT secret — store securely
 const JWT_SECRET = process.env.JWT_SECRET!;
-const COOKIE_NAME = 'auth_token';
+const COOKIE_NAME = 'admin_auth';
 const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '').trim();
 
 export async function POST(request: NextRequest) {
@@ -20,8 +20,7 @@ export async function POST(request: NextRequest) {
     // Return cookie with token
     const response = NextResponse.json({ success: true });
     response.cookies.set(COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      httpOnly: false,
       path: '/',
       maxAge: 60 * 60 * 24, // 1 day
       sameSite: 'lax',

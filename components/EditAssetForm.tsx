@@ -95,7 +95,21 @@ export default function EditAssetForm({ asset }: EditAssetFormProps) {
                     : null,
             };
 
-            await updateAsset(asset._id, fullUpdate);
+            const removedKeys = Object.keys(asset).filter(
+                (key) =>
+                    ![
+                        '_id',
+                        'Brand',
+                        'Model',
+                        'Status',
+                        'Description',
+                        'Purchase_Date',
+                        'Image',
+                    ].includes(key) &&
+                    !(key in extraProps) // key was in original asset but not in updated extraProps
+            );
+
+            await updateAsset(asset._id, fullUpdate, removedKeys);
             router.push(`/${asset._id}`);
         } catch (err: any) {
             setError(err.message || 'Failed to update asset');

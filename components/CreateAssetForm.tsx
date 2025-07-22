@@ -21,6 +21,11 @@ export default function CreateAssetForm({ defaultId }: Props) {
         Image: '',
     });
 
+    // For extra (arbitrary) properties
+    const [extraProps, setExtraProps] = useState<Record<string, string>>({});
+    const [newPropKey, setNewPropKey] = useState('');
+    const [newPropValue, setNewPropValue] = useState('');
+
     // Sync _id state to defaultId prop changes
     useEffect(() => {
         setFormData(prev => ({
@@ -48,7 +53,6 @@ export default function CreateAssetForm({ defaultId }: Props) {
         setError(null);
 
         try {
-            // Convert Purchase_Date to timestamp (seconds)
             const purchaseDateTimestamp = formData.Purchase_Date
                 ? Math.floor(new Date(formData.Purchase_Date).getTime() / 1000)
                 : null;
@@ -56,6 +60,7 @@ export default function CreateAssetForm({ defaultId }: Props) {
             await createAsset({
                 ...formData,
                 Purchase_Date: purchaseDateTimestamp,
+                ...extraProps, // Include extra properties
             });
 
             router.push('/');
@@ -70,9 +75,7 @@ export default function CreateAssetForm({ defaultId }: Props) {
             <h1>Create New Asset</h1>
             <form onSubmit={handleSubmit} className="mt-4">
                 <div className="mb-3">
-                    <label htmlFor="_id" className="form-label">
-                        Asset ID
-                    </label>
+                    <label htmlFor="_id" className="form-label">Asset ID</label>
                     <input
                         id="_id"
                         name="_id"
@@ -85,9 +88,7 @@ export default function CreateAssetForm({ defaultId }: Props) {
                 </div>
 
                 <div className="mb-3">
-                    <label htmlFor="Brand" className="form-label">
-                        Brand
-                    </label>
+                    <label htmlFor="Brand" className="form-label">Brand</label>
                     <input
                         id="Brand"
                         name="Brand"
@@ -99,9 +100,7 @@ export default function CreateAssetForm({ defaultId }: Props) {
                 </div>
 
                 <div className="mb-3">
-                    <label htmlFor="Model" className="form-label">
-                        Model
-                    </label>
+                    <label htmlFor="Model" className="form-label">Model</label>
                     <input
                         id="Model"
                         name="Model"
@@ -113,9 +112,7 @@ export default function CreateAssetForm({ defaultId }: Props) {
                 </div>
 
                 <div className="mb-3">
-                    <label htmlFor="Status" className="form-label">
-                        Status
-                    </label>
+                    <label htmlFor="Status" className="form-label">Status</label>
                     <select
                         id="Status"
                         name="Status"
@@ -133,9 +130,7 @@ export default function CreateAssetForm({ defaultId }: Props) {
                 </div>
 
                 <div className="mb-3">
-                    <label htmlFor="Description" className="form-label">
-                        Description
-                    </label>
+                    <label htmlFor="Description" className="form-label">Description</label>
                     <textarea
                         id="Description"
                         name="Description"
@@ -146,9 +141,7 @@ export default function CreateAssetForm({ defaultId }: Props) {
                 </div>
 
                 <div className="mb-3">
-                    <label htmlFor="Purchase_Date" className="form-label">
-                        Purchase Date
-                    </label>
+                    <label htmlFor="Purchase_Date" className="form-label">Purchase Date</label>
                     <input
                         id="Purchase_Date"
                         name="Purchase_Date"
@@ -160,9 +153,7 @@ export default function CreateAssetForm({ defaultId }: Props) {
                 </div>
 
                 <div className="mb-3">
-                    <label htmlFor="Image" className="form-label">
-                        Image Path
-                    </label>
+                    <label htmlFor="Image" className="form-label">Image Path</label>
                     <input
                         id="Image"
                         name="Image"
@@ -172,6 +163,76 @@ export default function CreateAssetForm({ defaultId }: Props) {
                         onChange={onChange}
                     />
                 </div>
+
+                {/* ----- Extra Properties UI ----- */}
+                <h5>Custom Properties</h5>
+
+                {Object.entries(extraProps).map(([key, value]) => (
+                    <div className="mb-3 d-flex align-items-center gap-2" key={key}>
+                        <div className="flex-grow-1">
+                            <label htmlFor={`extra-${key}`} className="form-label">
+                                {key.replace(/_/g, ' ')}
+                            </label>
+                            <input
+                                id={`extra-${key}`}
+                                name={key}
+                                type="text"
+                                className="form-control"
+                                value={value}
+                                onChange={(e) =>
+                                    setExtraProps((prev) => ({ ...prev, [key]: e.target.value }))
+                                }
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            className="btn btn-danger align-self-end"
+                            onClick={() => {
+                                setExtraProps((prev) => {
+                                    const updated = { ...prev };
+                                    delete updated[key];
+                                    return updated;
+                                });
+                            }}
+                            title="Remove property"
+                        >
+                            <i className="bi bi-x"></i>
+                        </button>
+                    </div>
+                ))}
+
+                {/* Add new property */}
+                <div className="input-group mb-3">
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="New property name"
+                        value={newPropKey}
+                        onChange={(e) => setNewPropKey(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="New property value"
+                        value={newPropValue}
+                        onChange={(e) => setNewPropValue(e.target.value)}
+                    />
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => {
+                            if (newPropKey.trim()) {
+                                setExtraProps((prev) => ({ ...prev, [newPropKey]: newPropValue }));
+                                setNewPropKey('');
+                                setNewPropValue('');
+                            }
+                        }}
+                        disabled={!newPropKey.trim()}
+                    >
+                        Add Property
+                    </button>
+                </div>
+                {/* ----- End Extra Properties ----- */}
 
                 {error && <div className="alert alert-danger">{error}</div>}
 
