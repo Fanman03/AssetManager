@@ -76,7 +76,7 @@ const Navbar: React.FC<NavbarProps> = ({
         {variant === 'default' ? (
           <div className="d-flex align-items-center searchBarContainer">
             <form
-              className="form-inline my-2 my-lg-0 me-3"
+              className="form-inline my-2 my-lg-0"
               id="searchBar"
               onSubmit={handleSubmit}
             >
@@ -87,6 +87,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 <input
                   className="form-control"
                   type="search"
+                  id="search"
                   placeholder="Search"
                   aria-label="Search"
                   value={searchTerm}

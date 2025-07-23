@@ -161,3 +161,10 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
     </>
   );
 }
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return {
+    title: `${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
+  };
+}

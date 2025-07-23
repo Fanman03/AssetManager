@@ -22,3 +22,10 @@ export default async function BarcodePage({ params }: { params: Promise<{ id: st
     </>
   );
 }
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return {
+    title: `Barcode for ${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
+  };
+}

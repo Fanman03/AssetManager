@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import EditAssetForm from './EditAssetForm';
 import type { Asset } from '@/types/asset';
 import Navbar from './Navbar';
+import LoadingSpinner from './LoadingSpinner';
 
 export default function EditAssetClientWrapper({ asset }: { asset: Asset }) {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
@@ -39,10 +40,8 @@ export default function EditAssetClientWrapper({ asset }: { asset: Asset }) {
   if (authorized === null) {
     return (
       <>
-        <Navbar variant="backBtn" />
-        <main className="container py-5 text-center">
-          <div className="spinner-border text-primary" role="status"></div>
-        </main>
+        <Navbar variant='backBtn' />
+        <LoadingSpinner />
       </>
     );
   }

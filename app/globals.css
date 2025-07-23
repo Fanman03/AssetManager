@@ -32,26 +32,39 @@ body {
 }
 
 @media (max-width: 768px) {
+  .searchBarContainer {
+    width: 100%;
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    /* allows wrapping if needed */
+  }
+
+  #searchBar {
+    flex: 1;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  #searchBar .input-group {
+    width: 100%;
+  }
+
+  #loginBtn {
+    width: 100%;
+    /* stack the button if needed */
+  }
 
   #logoutBtn,
   #loginBtn {
     display: none;
   }
 
-  #searchBar,
-  .searchBarContainer {
-    width: 100vw;
-  }
-
   .dropdown-control-row {
     flex-direction: row !important;
-    justify-content: space-between !important;
+    justify-content: space-around !important;
     flex-wrap: nowrap;
     gap: 1rem;
-  }
-
-  #searchBar {
-    width: '100%';
   }
 }
 
@@ -67,4 +80,35 @@ body {
 .statusText {
   font-weight: 400;
   font-size: 2rem;
+}
+
+.statusContainer {
+  width: 10px;
+}
+
+#logoutBtn,
+#loginBtn {
+  margin-left: 10px;
+}
+
+#floatingCreateBtn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #0d6efd;
+  border: none;
+  color: white;
+  font-size: 32px;
+  line-height: 0;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  user-select: none;
+  transition: background-color 0.2s ease;
 }

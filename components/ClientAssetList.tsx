@@ -7,6 +7,7 @@ import type { Asset } from '@/types/asset';
 import Navbar from './Navbar';
 import FloatingAddButton from './FloatingAddButton';
 import markdownit from 'markdown-it'
+import Cookies from 'js-cookie';
 
 type Props = {
   initialAssets: Asset[];
@@ -16,12 +17,21 @@ export default function ClientAssetList({ initialAssets }: Props) {
   let appName = process.env.NEXT_PUBLIC_APP_NAME;
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortOption, setSortOption] = useState('Default');
+  const [sortOption, setSortOption] = useState(() => Cookies.get('sortOption') || 'Default');
+  const [itemsPerPage, setItemsPerPage] = useState(() => parseInt(Cookies.get('itemsPerPage') || '25'));
+  const [sortField, setSortField] = useState<keyof Asset | null>(() => {
+    const sf = Cookies.get('sortField');
+    return sf ? (sf as keyof Asset) : null;
+  });
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(() => {
+    const dir = Cookies.get('sortDirection');
+    return dir === 'desc' ? 'desc' : 'asc';
+  });
+  const [showInServiceOnly, setShowInServiceOnly] = useState<boolean>(() => {
+    return Cookies.get('showInServiceOnly') === 'true';
+  });
   const [filteredAssets, setFilteredAssets] = useState(initialAssets);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
-  const [sortField, setSortField] = useState<keyof Asset | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const md = markdownit()
 
   useEffect(() => {
@@ -30,14 +40,45 @@ export default function ClientAssetList({ initialAssets }: Props) {
 
   useEffect(() => {
     const term = searchTerm.toLowerCase();
-    const result = initialAssets.filter(a =>
+    let result = initialAssets.filter(a =>
       a._id.toLowerCase().includes(term) ||
       a.Brand.toLowerCase().includes(term) ||
       a.Model.toLowerCase().includes(term) ||
       a.Description.toLowerCase().includes(term)
     );
+
+    if (showInServiceOnly) {
+      result = result.filter(a => a.Status === 1);
+    }
+
     setFilteredAssets(result);
-  }, [searchTerm, initialAssets]);
+  }, [searchTerm, initialAssets, showInServiceOnly]);
+
+  useEffect(() => {
+    Cookies.set('sortOption', sortOption, { expires: 365 });
+  }, [sortOption]);
+
+  useEffect(() => {
+    Cookies.set('itemsPerPage', String(itemsPerPage), { expires: 365 });
+  }, [itemsPerPage]);
+
+  useEffect(() => {
+    if (sortField !== null) {
+      Cookies.set('sortField', String(sortField), { expires: 365 });
+    } else {
+      Cookies.remove('sortField');
+    }
+  }, [sortField]);
+
+  useEffect(() => {
+    Cookies.set('sortDirection', sortDirection, { expires: 365 });
+  }, [sortDirection]);
+
+  useEffect(() => {
+    Cookies.set('showInServiceOnly', String(showInServiceOnly), { expires: 365 });
+  }, [showInServiceOnly]);
+
+
 
   const sortedAssets = useMemo(() => {
     const copy = [...filteredAssets];
@@ -136,7 +177,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
       <FloatingAddButton />
       <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <main className="container">
-        <div className="row mt-4 mb-3 g-2">
+        <div className="row my-2 g-2">
           <div className="col-12 col-md d-flex align-items-center justify-content-md-start justify-content-between">
             <h1 className="display-6 fw-normal mb-0">Asset List</h1>
           </div>
@@ -158,7 +199,11 @@ export default function ClientAssetList({ initialAssets }: Props) {
                   <ul className="dropdown-menu">
                     {['Default', 'Oldest', 'Newest'].map(opt => (
                       <li key={opt}>
-                        <button className="dropdown-item" onClick={() => setSortOption(opt)}>
+                        <button className="dropdown-item" onClick={() => {
+                          setSortOption(opt);
+                          setSortField(null);
+                          setSortDirection('asc');
+                        }}>
                           {opt}
                         </button>
                       </li>
@@ -199,9 +244,38 @@ export default function ClientAssetList({ initialAssets }: Props) {
               </div>
             </div>
           </div>
+          <div className="d-flex flex-row-reverse align-items-center justify-content-md-start justify-content-around my-2">
+            <div className="ms-2">
+              <button className="btn btn-secondary" onClick={() => {
+                Cookies.remove('searchTerm');
+                Cookies.remove('sortOption');
+                Cookies.remove('sortField');
+                Cookies.remove('sortDirection');
+                Cookies.remove('itemsPerPage');
+                Cookies.remove('showInServiceOnly');
+                location.reload();
+              }}>Reset Filters</button>
+
+            </div>
+            <div className="form-check">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="flexCheckInService"
+                checked={showInServiceOnly}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setShowInServiceOnly(checked);
+                }}
+              />
+              <label className="form-check-label" htmlFor="flexCheckInService">
+                Show In Service only
+              </label>
+            </div>
+          </div>
         </div>
 
-        <div className='d-flex justify-content-between align-items-center'>
+        <div className="d-flex justify-content-between align-items-center">
           {sortedAssets.length > 0 && (
             <p className="text-muted mt-2">
               Showing {startIndex + 1}–{endIndex} of {sortedAssets.length} item{sortedAssets.length !== 1 && 's'}
@@ -251,10 +325,10 @@ export default function ClientAssetList({ initialAssets }: Props) {
         </div>
         {sortedAssets.length > 0 ? (
           <div className="table-responsive">
-            <table className="table table-hover">
+            <table className="table table-hover table-striped">
               <thead>
                 <tr>
-                  <th></th>
+                  <th className="statusContainer" onClick={() => handleColumnSort('Status')}>{sortField === 'Status' && (sortDirection === 'asc' ? '▲' : '▼')}</th>
                   <th role="button" onClick={() => handleColumnSort('_id')}>
                     Asset Tag {sortField === '_id' && (sortDirection === 'asc' ? '▲' : '▼')}
                   </th>
@@ -273,7 +347,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
               <tbody>
                 {paginatedAssets.map(asset => (
                   <tr key={asset._id} className="assetRow" onClick={() => router.push(`/${asset._id}`)}>
-                    <td>{statusIcon(asset.Status)}</td>
+                    <td className="statusContainer">{statusIcon(asset.Status)}</td>
                     <td>
                       <Link href={`/${asset._id}`}>{asset._id}</Link>
                     </td>
