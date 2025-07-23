@@ -104,15 +104,14 @@ export default function ClientAssetList({ initialAssets }: Props) {
 
 
   return (
-    <main>
+    <>
       <FloatingAddButton />
       <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <div className="container">
+      <main className="container">
         <div className="row mt-4 mb-3 g-2">
           <div className="col-12 col-md d-flex align-items-center justify-content-md-start justify-content-between">
             <h1 className="display-6 fw-normal mb-0">Asset List</h1>
           </div>
-
           <div className="col-12 col-md-auto">
             <div className="d-flex flex-column flex-md-row align-items-md-center gap-2 dropdown-control-row">
               {/* Sort Dropdown */}
@@ -252,7 +251,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
         ) : (
           <h3 className="text-center text-muted">No results found.</h3>
         )}
-      </div>
-    </main >
+      </main>
+    </>
   );
 }

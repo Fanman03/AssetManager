@@ -43,7 +43,7 @@ const demoDummyAssets: Asset[] = [
     Image: 'Ubiquiti/U6Enterprise',
     Description: 'Test Asset 4',
     Location: "Missouri Office West Hallway",
-    MAC_ID: "AA:BB:CC:DD:EE",
+    MAC_ID: "AA:BB:CC:DD:EE:FF",
     Serial_Number: "000000000"
   },{
     _id: 'AP-00001',
@@ -54,7 +54,7 @@ const demoDummyAssets: Asset[] = [
     Image: 'Ubiquiti/U6Pro',
     Description: 'Test Asset 3',
     Location: "Missouri Office West Hallway",
-    MAC_ID: "AA:BB:CC:DD:EE",
+    MAC_ID: "AA:BB:CC:DD:EE:FF",
     Serial_Number: "000000000",
     Sale_Date: "January 1, 2023"
   }

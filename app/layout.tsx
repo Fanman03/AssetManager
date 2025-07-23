@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="d-flex flex-column h-100">
         <BootstrapClient />
-        <main className="mb-3">{children}</main>
+        <div className="mb-3">{children}</div>
         <Script id="theme-script" strategy="afterInteractive">
           {`if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
               document.documentElement.setAttribute("data-bs-theme", "dark");

@@ -1,5 +1,4 @@
 import { getAssetById } from '@/lib/db';
-import { Asset } from '@/types/asset';
 import { notFound } from 'next/navigation';
 import Script from 'next/script';
 import { Roboto_Mono, Roboto } from 'next/font/google';
@@ -18,6 +17,7 @@ export default async function BarcodePage({ params }: { params: Promise<{ id: st
     <>
       <Navbar variant='backBtn' />
       <Script src="/js/datamatrix.js" strategy="beforeInteractive" />
+      <Script src="/js/dymo.connect.framework.js" strategy="beforeInteractive" />
       <BarcodeCanvas asset={asset} />
     </>
   );

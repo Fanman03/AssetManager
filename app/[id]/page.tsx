@@ -3,7 +3,8 @@ import { format } from 'date-fns';
 import Navbar from '@/components/Navbar';
 import AssetDeleteButton from '@/components/AssetDeleteButton';
 import AssetCloneButton from '@/components/AssetCloneButton';
-import markdownit from 'markdown-it'
+import markdownit from 'markdown-it';
+import { Metadata, ResolvingMetadata } from 'next';
 
 const statusIcon = (status?: number) => {
   if (status === undefined) {
@@ -61,9 +62,9 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
     : null;
 
   return (
-    <div>
+    <>
       <Navbar variant='backBtn' />
-      <div className="container mt-5">
+      <main className="container mt-5">
         <div className="d-flex justify-content-between align-items-start">
           <div>
             <h1>{statusIcon(Status)}</h1>
@@ -143,7 +144,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
             ))}
           </tbody>
         </table>
-      </div>
-    </div>
+      </main>
+    </>
   );
 }

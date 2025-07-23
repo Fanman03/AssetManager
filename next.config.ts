@@ -3,6 +3,7 @@
 import type { NextConfig } from 'next';
 import type { Configuration } from 'webpack';
 import path from 'path';
+const { version } = require('./package.json');
 
 const nextConfig: NextConfig = {
   webpack: (config: Configuration) => {
@@ -13,6 +14,9 @@ const nextConfig: NextConfig = {
     };
     return config;
   },
+  env: {
+    version
+  }
 };
 
 export default nextConfig;
