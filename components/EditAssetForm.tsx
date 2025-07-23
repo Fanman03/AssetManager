@@ -164,7 +164,7 @@ export default function EditAssetForm({ asset }: EditAssetFormProps) {
                         onChange={onChange}
                     >
                         <option value={0}>Spare</option>
-                        <option value={1}>In Service</option>
+                        <option value={1}>Active</option>
                         <option value={2}>Retired</option>
                         <option value={3}>Sold</option>
                         <option value={4}>Lost</option>

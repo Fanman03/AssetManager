@@ -7,7 +7,7 @@ import markdownit from 'markdown-it';
 
 const StatusMap: Record<number, { icon: string; className: string; label: string }> = {
   0: { icon: 'check-circle-fill', className: 'text-info', label: 'Spare' },
-  1: { icon: 'check-circle-fill', className: 'text-success', label: 'In Service' },
+  1: { icon: 'check-circle-fill', className: 'text-success', label: 'Active' },
   2: { icon: 'clock-fill', className: 'text-warning', label: 'Retired' },
   3: { icon: 'currency-exchange', className: 'text-warning', label: 'Sold' },
   4: { icon: 'question-circle-fill', className: 'text-danger', label: 'Lost' },

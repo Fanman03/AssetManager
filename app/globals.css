@@ -93,8 +93,8 @@ body {
 
 #floatingCreateBtn {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 30px;
+  right: 30px;
   width: 56px;
   height: 56px;
   border-radius: 50%;
