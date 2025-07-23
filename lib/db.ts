@@ -9,7 +9,7 @@ const isDemoMode = process.env.DEMO_MODE === 'true';
 const demoDummyAssets: Asset[] = [
   {
     _id: 'D-00001',
-    Status: 1,
+    Status: 0,
     Purchase_Date: 1661196600,
     Brand: 'Dell',
     Model: 'OptiPlex 5060 MFF',
@@ -19,8 +19,22 @@ const demoDummyAssets: Asset[] = [
     Serial_Number: 'DB2R0T2',
     CPU: 'Intel Core i5-8500T',
     RAM: '16GB DDR4-2666 (2/2)',
+    Storage_1: '512GB M.2 NVMe'
+  }, {
+    _id: 'D-00002',
+    Status: 1,
+    Purchase_Date: 1661196600,
+    Brand: 'Dell',
+    Model: 'OptiPlex 5060 MFF',
+    Image: 'Dell/OptiPlex-5060M',
+    Description: 'Test Asset 2',
+    Location: 'Missouri Office',
+    Serial_Number: 'DB2R0T2',
+    CPU: 'Intel Core i5-8500T',
+    RAM: '16GB DDR4-2666 (2/2)',
     Storage_1: '512GB M.2 NVMe',
-    Display_1: '$M-00001'
+    Display_1: '$M-00001',
+    Display_2: '$M-00002'
   }, {
     _id: 'M-00001',
     Status: 1,
@@ -28,35 +42,74 @@ const demoDummyAssets: Asset[] = [
     Brand: 'Dell',
     Model: 'P2419H',
     Image: 'Dell/P2419h',
-    Description: 'Test Asset 2',
+    Description: 'Test Asset 3',
     Location: "Missouri Office",
     Serial_Number: "8D42P33",
     Resolution: '1920x1080',
     Panel_Technology: 'IPS',
   },
   {
-    _id: 'AP-00002',
+    _id: 'M-00002',
+    Status: 1,
+    Purchase_Date: 1661196600,
+    Brand: 'Dell',
+    Model: 'P2419H',
+    Image: 'Dell/P2419h',
+    Description: 'Test Asset 4',
+    Location: "Missouri Office",
+    Serial_Number: "1G07JD2",
+    Resolution: '1920x1080',
+    Panel_Technology: 'IPS',
+  },
+  {
+    _id: 'AP-00003',
     Status: 1,
     Purchase_Date: 1672556460,
     Brand: 'Ubiquiti',
     Model: 'U6-Enterprise',
     Image: 'Ubiquiti/U6Enterprise',
-    Description: 'Test Asset 4',
+    Description: 'Test Asset 7',
     Location: "Missouri Office West Hallway",
     MAC_ID: "AA:BB:CC:DD:EE:FF",
     Serial_Number: "000000000"
-  },{
+  }, {
     _id: 'AP-00001',
     Status: 3,
     Purchase_Date: 1472556460,
     Brand: 'Ubiquiti',
     Model: 'UAP-AC-Pro',
     Image: 'Ubiquiti/U6Pro',
-    Description: 'Test Asset 3',
+    Description: 'Test Asset 6',
     Location: "Missouri Office West Hallway",
     MAC_ID: "AA:BB:CC:DD:EE:FF",
     Serial_Number: "000000000",
     Sale_Date: "January 1, 2023"
+  },
+  {
+    _id: 'AP-00002',
+    Status: 2,
+    Purchase_Date: 1472556460,
+    Brand: 'Ubiquiti',
+    Model: 'UAP-AC-Pro',
+    Image: 'Ubiquiti/U6Pro',
+    Description: 'Test Asset 5',
+    Location: "Missouri Office West Hallway",
+    MAC_ID: "AA:BB:CC:DD:EE:FF",
+    Serial_Number: "000000000",
+    Sale_Date: "January 1, 2023"
+  },
+  {
+    _id: 'L-00002',
+    Status: 4,
+    Purchase_Date: 1661196600,
+    Brand: 'Dell',
+    Model: 'Latitude 9420',
+    Image: 'Dell/Latitude-9420',
+    Description: 'Test Asset 8',
+    Location: 'Missouri Office',
+    Serial_Number: 'CYB66M3',
+    CPU: 'Intel Core i7-1185G7',
+    RAM: '32GB LPDDR4X-4267 (0/0)'
   }
 ];
 
