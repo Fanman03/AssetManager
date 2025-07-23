@@ -26,3 +26,6 @@ services:
 All that's needed to run the app is an empty MongoDB database named `asset-db` containing a collection named `assets`. 
 
 Once the app connects to your database, it will insert a few example items. Feel free to check them out for ideas, or delete them and start from scratch.
+
+## Adding Images
+Images are stored in [this git repo](https://github.com/Fanman03/asset-images). Images can be added by opening a pull request with the new images. Please ensure images meet the following requirements: PNG of the item with a transparent background, 512x512px.
