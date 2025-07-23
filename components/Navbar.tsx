@@ -56,6 +56,10 @@ const Navbar: React.FC<NavbarProps> = ({
     router.push('/');
   };
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); // Prevents page refresh
+  };
+
   return (
     <nav className="navbar navbar-expand-lg bg-primary">
       {hideLogin ? (
@@ -74,7 +78,7 @@ const Navbar: React.FC<NavbarProps> = ({
             <form
               className="form-inline my-2 my-lg-0 me-3"
               id="searchBar"
-              style={{ maxWidth: 400, width: '100%' }}
+              onSubmit={handleSubmit}
             >
               <div className="input-group">
                 <span className="input-group-text">

@@ -24,12 +24,12 @@ export default function EditAssetClientWrapper({ asset }: { asset: Asset }) {
         } else {
           setAuthorized(false);
           // Redirect to login with redirectTo param
-          router.push(`/login?redirectTo=${encodeURIComponent(pathname)}`);
+          router.push(`/login?returnTo=${encodeURIComponent(pathname)}`);
         }
       } catch (err) {
         console.error('Auth check failed:', err);
         setAuthorized(false);
-        router.push(`/login?redirectTo=${encodeURIComponent(pathname)}`);
+        router.push(`/login?returnTo=${encodeURIComponent(pathname)}`);
       }
     };
 

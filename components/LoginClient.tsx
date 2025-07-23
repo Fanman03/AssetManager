@@ -14,7 +14,7 @@ export default function LoginClient() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const param = searchParams?.get('redirect');
+    const param = searchParams?.get('returnTo');
     if (param) setRedirectTo(param);
   }, [searchParams]);
 

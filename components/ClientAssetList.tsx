@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Asset } from '@/types/asset';
 import Navbar from './Navbar';
@@ -13,11 +14,14 @@ type Props = {
 
 export default function ClientAssetList({ initialAssets }: Props) {
   let appName = process.env.NEXT_PUBLIC_APP_NAME;
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('Default');
   const [filteredAssets, setFilteredAssets] = useState(initialAssets);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [sortField, setSortField] = useState<keyof Asset | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const md = markdownit()
 
   useEffect(() => {
@@ -37,7 +41,21 @@ export default function ClientAssetList({ initialAssets }: Props) {
 
   const sortedAssets = useMemo(() => {
     const copy = [...filteredAssets];
-    if (sortOption === 'Oldest') {
+
+    if (sortField) {
+      copy.sort((a, b) => {
+        const aValue = a[sortField] ?? '';
+        const bValue = b[sortField] ?? '';
+
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+        }
+
+        return sortDirection === 'asc'
+          ? String(aValue).localeCompare(String(bValue))
+          : String(bValue).localeCompare(String(aValue));
+      });
+    } else if (sortOption === 'Oldest') {
       copy.sort((a, b) => a.Purchase_Date - b.Purchase_Date);
     } else if (sortOption === 'Newest') {
       copy.sort((a, b) => b.Purchase_Date - a.Purchase_Date);
@@ -51,8 +69,18 @@ export default function ClientAssetList({ initialAssets }: Props) {
         return (a.Status ?? 99) - (b.Status ?? 99);
       });
     }
+
     return copy;
-  }, [sortOption, filteredAssets]);
+  }, [sortOption, filteredAssets, sortField, sortDirection]);
+
+  const handleColumnSort = (field: keyof Asset) => {
+    if (sortField === field) {
+      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -226,16 +254,25 @@ export default function ClientAssetList({ initialAssets }: Props) {
             <table className="table table-hover">
               <thead>
                 <tr>
-                  <th>Status</th>
-                  <th>Asset Tag</th>
-                  <th>Brand</th>
-                  <th>Model</th>
-                  <th>Description</th>
+                  <th></th>
+                  <th role="button" onClick={() => handleColumnSort('_id')}>
+                    Asset Tag {sortField === '_id' && (sortDirection === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th role="button" onClick={() => handleColumnSort('Brand')}>
+                    Brand {sortField === 'Brand' && (sortDirection === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th role="button" onClick={() => handleColumnSort('Model')}>
+                    Model {sortField === 'Model' && (sortDirection === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th role="button" onClick={() => handleColumnSort('Description')}>
+                    Description {sortField === 'Description' && (sortDirection === 'asc' ? '▲' : '▼')}
+                  </th>
                 </tr>
               </thead>
+
               <tbody>
                 {paginatedAssets.map(asset => (
-                  <tr key={asset._id}>
+                  <tr key={asset._id} className="assetRow" onClick={() => router.push(`/${asset._id}`)}>
                     <td>{statusIcon(asset.Status)}</td>
                     <td>
                       <Link href={`/${asset._id}`}>{asset._id}</Link>

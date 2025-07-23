@@ -49,9 +49,22 @@ body {
     flex-wrap: nowrap;
     gap: 1rem;
   }
+
+  #searchBar {
+    width: '100%';
+  }
 }
 
 #barcodeCanvas {
   margin-top: 4rem;
   margin-bottom: 4rem;
+}
+
+.assetRow {
+  cursor: pointer;
+}
+
+.statusText {
+  font-weight: 400;
+  font-size: 2rem;
 }

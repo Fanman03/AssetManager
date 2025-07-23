@@ -4,29 +4,42 @@ import Navbar from '@/components/Navbar';
 import AssetDeleteButton from '@/components/AssetDeleteButton';
 import AssetCloneButton from '@/components/AssetCloneButton';
 import markdownit from 'markdown-it';
-import { Metadata, ResolvingMetadata } from 'next';
+
+const StatusMap: Record<number, { icon: string; className: string; label: string }> = {
+  0: { icon: 'check-circle-fill', className: 'text-info', label: 'Spare' },
+  1: { icon: 'check-circle-fill', className: 'text-success', label: 'In Service' },
+  2: { icon: 'clock-fill', className: 'text-warning', label: 'Retired' },
+  3: { icon: 'currency-exchange', className: 'text-warning', label: 'Sold' },
+  4: { icon: 'question-circle-fill', className: 'text-danger', label: 'Lost' },
+  5: { icon: 'exclamation-circle-fill', className: 'text-danger', label: 'Stolen' },
+};
 
 const statusIcon = (status?: number) => {
   if (status === undefined) {
     return <i className="bi bi-question-circle-fill text-secondary" title="Unknown" />;
   }
 
-  const map: Record<number, { icon: string; className: string; label: string }> = {
-    0: { icon: 'check-circle-fill', className: 'text-info', label: 'Spare' },
-    1: { icon: 'check-circle-fill', className: 'text-success', label: 'In Service' },
-    2: { icon: 'clock-fill', className: 'text-warning', label: 'Retired' },
-    3: { icon: 'currency-exchange', className: 'text-warning', label: 'Sold' },
-    4: { icon: 'question-circle-fill', className: 'text-danger', label: 'Lost' },
-    5: { icon: 'exclamation-circle-fill', className: 'text-danger', label: 'Stolen' },
-  };
-
-  const data = map[status] || {
+  const data = StatusMap[status] || {
     icon: 'bug-fill',
     className: 'text-danger',
     label: 'Error',
   };
 
   return <i className={`bi bi-${data.icon} ${data.className}`} title={data.label} />;
+};
+
+const statusText = (status?: number) => {
+  if (status === undefined) {
+    return "Unknown";
+  }
+
+  const data = StatusMap[status] || {
+    icon: 'bug-fill',
+    className: 'text-danger',
+    label: 'Error',
+  };
+
+  return data.label;
 };
 
 export default async function AssetPage({ params }: { params: Promise<{ id: string }> }) {
@@ -67,7 +80,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
       <main className="container mt-5">
         <div className="d-flex justify-content-between align-items-start">
           <div>
-            <h1>{statusIcon(Status)}</h1>
+            <h1><span className="me-2">{statusIcon(Status)}</span><span className="me-2 statusText">{statusText(Status)}</span></h1>
             <h1 className="assetTitle">
               <span className='assetTag'>{_id}</span><span className="assetSeperator">-</span>{Brand} {Model}
             </h1>
