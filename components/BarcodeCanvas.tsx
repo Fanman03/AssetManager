@@ -62,23 +62,34 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
       ctx.fillText(Model, 640, 380);
       ctx.fillText(tagUrl, 640, 530);
 
-      // Barcode path
-      const svgNode = DATAMatrix({ msg: `${baseDomain}/${_id}`, dim: 100 });
+      // === Barcode section with consistent size ===
+      const BARCODE_BOX = 650; // final size of barcode in pixels
+      const BARCODE_X = 50;    // left offset
+      const BARCODE_Y = 50;    // top offset
+
+      const svgNode = DATAMatrix({ msg: `${_id}`, dim: 100 });
       const svgPath = svgNode?.querySelector('path')?.getAttribute('d');
 
       if (svgPath) {
         const path = new Path2D(svgPath);
-        ctx.setTransform(23, 0, 0, 23, 70, 50); // Scale + Translate
+
+        // Determine intrinsic size of the Data Matrix
+        const vb = svgNode.viewBox.baseVal;
+        const scale = BARCODE_BOX / vb.width; // Scale to fit BARCODE_BOX square
+
+        ctx.setTransform(scale, 0, 0, scale, BARCODE_X, BARCODE_Y);
         ctx.fill(path);
       } else {
         console.warn('Barcode path not found');
       }
+      // === End barcode section ===
 
       setIsDrawn(true);
     };
 
     draw();
   }, [asset]);
+
 
   const downloadImage = () => {
     const canvas = canvasRef.current;
