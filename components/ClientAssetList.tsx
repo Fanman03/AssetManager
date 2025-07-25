@@ -275,7 +275,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
           </div>
         </div>
 
-        <div className="d-flex justify-content-between align-items-center">
+        <div className="d-flex justify-content-between align-items-center my-2">
           {sortedAssets.length > 0 && (
             <p className="text-muted my-auto">
               Showing {startIndex + 1}–{endIndex} of {sortedAssets.length} item{sortedAssets.length !== 1 && 's'}

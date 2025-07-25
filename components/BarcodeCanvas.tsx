@@ -110,7 +110,7 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
   };
 
   const printToDYMO = async () => {
-    if (typeof window.dymo === 'undefined') {
+    if (!window?.dymo?.label?.framework) {
       alert('DYMO SDK not loaded');
       return;
     }
@@ -118,41 +118,33 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const imageData = canvas.toDataURL('image/png').replace(/^data:image\/png;base64,/, '');
-
-    const labelXml = `
-  <?xml version="1.0" encoding="utf-8"?>
-  <DieCutLabel Version="8.0" Units="twips">
-    <PaperOrientation>Landscape</PaperOrientation>
-    <Id>Address</Id>
-    <PaperName>30252 Address</PaperName>
-    <DrawCommands/>
-    <ObjectInfo>
-      <ImageObject>
-        <Name>Image</Name>
-        <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
-        <BackColor Alpha="0" Red="255" Green="255" Blue="255"/>
-        <ImageFormat>PNG</ImageFormat>
-        <Image>${imageData}</Image>
-        <ScaleMode>Fit</ScaleMode>
-        <HorizontalAlignment>Center</HorizontalAlignment>
-        <VerticalAlignment>Center</VerticalAlignment>
-      </ImageObject>
-      <Bounds X="0" Y="0" Width="5040" Height="1620"/>
-    </ObjectInfo>
-  </DieCutLabel>`;
-
     try {
-      const printers: DymoPrinter[] = window.dymo.label.framework.getPrinters();
-      const labelPrinter = printers.find(p => p.printerType === 'LabelWriterPrinter');
+      // 1) Load template
+      const resp = await fetch('/dymo/30252.label');
+      let labelXml = (await resp.text()).trim();
 
-      if (!labelPrinter) {
-        alert('No DYMO label printer found.');
+      // 2) Inject base64 image directly into the <Image> node
+      const imageData = canvas.toDataURL('image/png').split(',')[1]; // strip prefix
+      labelXml = labelXml.replace(
+        /(<Data>)([\s\S]*?)(<\/Data>)/,
+        `$1${imageData}$3`
+      );
+
+      // 3) Pick printer
+      const printers: DymoPrinter[] = window.dymo.label.framework.getPrinters();
+      const printer = printers.find(p => p.printerType === 'LabelWriterPrinter');
+      if (!printer) {
+        alert('No DYMO LabelWriter printer found.');
         return;
       }
 
-      const label = window.dymo.label.framework.openLabelXml(labelXml);
-      label.print(labelPrinter.name);
+      // 4) Print (no setObjectImage, we pass the *final* xml)
+      const paramsXml = window.dymo.label.framework.createLabelWriterPrintParamsXml({
+        copies: 1,
+        printQuality: 'BarcodeAndGraphics'
+      });
+      window.dymo.label.framework.printLabel(printer.name, paramsXml, labelXml);
+
     } catch (err) {
       console.error('DYMO printing failed:', err);
     }
@@ -172,15 +164,15 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
       />
       <div>
         <button
-          className="btn btn-primary mx-1"
+          className="btn btn-primary m-1"
           onClick={downloadImage}
           disabled={!isDrawn}><i className="bi bi-download me-2"></i>Download as PNG</button>
         <button
-          className="btn btn-success mx-1"
+          className="btn btn-success m-1"
           onClick={printToDYMO}
           disabled={!isDrawn}><i className="bi bi-printer me-2"></i>Print with DYMO</button>
         <button
-          className="btn btn-secondary mx-1"
+          className="btn btn-secondary m-1"
           onClick={printWithSystemDialog}
           disabled={!isDrawn}
         ><i className="bi bi-printer-fill me-2"></i>Print with System Dialog</button>
