@@ -32,6 +32,10 @@ body {
 }
 
 @media (max-width: 768px) {
+  .assetSeperator {
+    display: none;
+  }
+
   .searchBarContainer {
     width: 100%;
     box-sizing: border-box;

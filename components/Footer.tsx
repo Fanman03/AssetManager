@@ -1,28 +1,44 @@
 "use client";
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
 export default class Footer extends Component {
     render() {
         return (
-            <footer className="d-flex mt-auto flex-wrap justify-content-between align-items-center py-3 px-3 border-top">
-                <div className="col-md-4 d-flex align-items-center">
-                    <a href="/" className="mb-3 me-2 mb-md-0 text-muted text-decoration-none lh-1">
-                        <i className="bi bi-pc-display me-2"></i>
-                        <span className="mb-3 mb-md-0 text-muted">Asset Manager v{process.env.version} by Jack Pendleton</span>
-                    </a>
+            <footer className="container-fluid border-top mt-auto py-3 px-3">
+                <div className="row align-items-center text-center text-md-start">
+                    {/* Left side */}
+                    <div className="col-12 col-md-6 d-flex flex-column flex-md-row align-items-center justify-content-center justify-content-md-start mb-3 mb-md-0">
+                        <span className="text-muted">
+                            <i className="bi bi-pc-display me-2"></i>Asset Manager v{process.env.version} by Jack Pendleton
+                        </span>
+                    </div>
+
+                    {/* Right side */}
+                    <div className="col-12 col-md-6">
+                        <ul className="nav justify-content-center justify-content-md-end list-unstyled d-flex mb-0">
+                            <li className="ms-3">
+                                <a
+                                    className="text-muted"
+                                    href="https://github.com/Fanman03/AssetManager"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <i className="bi bi-github"></i>
+                                </a>
+                            </li>
+                            <li className="ms-3">
+                                <a
+                                    className="text-muted"
+                                    href="https://www.patreon.com/fanman03"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <i className="bi bi-piggy-bank-fill"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <ul className="nav col-md-4 justify-content-end list-unstyled d-flex">
-                    <li className="ms-3">
-                        <a className="text-muted" href="https://github.com/Fanman03/AssetManager" target="_blank" rel="noopener noreferrer">
-                            <i className="bi bi-github"></i>
-                        </a>
-                    </li>
-                    <li className="ms-3">
-                        <a className="text-muted" href="https://www.patreon.com/fanman03" target="_blank" rel="noopener noreferrer">
-                            <i className="bi bi-piggy-bank-fill"></i>
-                        </a>
-                    </li>
-                </ul>
             </footer>
         );
     }
