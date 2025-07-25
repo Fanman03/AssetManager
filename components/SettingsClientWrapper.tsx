@@ -2,14 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import CreateAssetForm from '@/components/CreateAssetForm';
 import Navbar from '@/components/Navbar';
 import LoadingSpinner from './LoadingSpinner';
+import SettingsContent from './SettingsContent';
 
-export default function EditAssetClientWrapper() {
+export default function SettingsClientWrapper() {
     const router = useRouter();
     const [authorized, setAuthorized] = useState<boolean | null>(null);
-    const [nextId, setNextId] = useState<string>('1'); // default to 1
 
     // Check auth on mount
     useEffect(() => {
@@ -19,27 +18,14 @@ export default function EditAssetClientWrapper() {
                     setAuthorized(true);
                 } else {
                     setAuthorized(false);
-                    router.push('/login?returnTo=/createAsset');
+                    router.push('/login?returnTo=/settings');
                 }
             })
             .catch(() => {
                 setAuthorized(false);
-                router.push('/login?returnTo=/createAsset');
+                router.push('/login?returnTo=/settings');
             });
     }, [router]);
-
-    // Fetch asset count to determine next ID (once authorized)
-    useEffect(() => {
-        if (authorized) {
-            fetch('/api/asset-count')
-                .then(res => res.json())
-                .then(data => {
-                    // Assume API returns { count: number }
-                    setNextId((data.count + 1).toString());
-                })
-                .catch(() => setNextId('1'));
-        }
-    }, [authorized]);
 
     if (authorized === null) {
         return (
@@ -53,7 +39,7 @@ export default function EditAssetClientWrapper() {
     return (
         <>
             <Navbar variant='backBtn' />
-            <CreateAssetForm defaultId={nextId} />
+            <SettingsContent />
         </>
     )
 }

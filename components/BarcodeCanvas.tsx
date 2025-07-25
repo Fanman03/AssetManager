@@ -164,15 +164,15 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
       />
       <div>
         <button
-          className="btn btn-primary m-1"
+          className="btn btn-primary m-2"
           onClick={downloadImage}
           disabled={!isDrawn}><i className="bi bi-download me-2"></i>Download as PNG</button>
         <button
-          className="btn btn-success m-1"
+          className="btn btn-success m-2"
           onClick={printToDYMO}
           disabled={!isDrawn}><i className="bi bi-printer me-2"></i>Print with DYMO</button>
         <button
-          className="btn btn-secondary m-1"
+          className="btn btn-secondary m-2"
           onClick={printWithSystemDialog}
           disabled={!isDrawn}
         ><i className="bi bi-printer-fill me-2"></i>Print with System Dialog</button>

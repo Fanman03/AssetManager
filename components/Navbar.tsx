@@ -97,14 +97,24 @@ const Navbar: React.FC<NavbarProps> = ({
             </form>
 
             {authorized ? (
-              <button
-                type="button"
-                className="btn btn-outline-light"
-                id="logoutBtn"
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="btn btn-outline-light"
+                  id="logoutBtn"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+                <a
+                  type="button"
+                  className="btn btn-outline-light ms-2"
+                  href="/settings"
+                  title="Settings"
+                >
+                  <i className="bi bi-gear"></i>
+                </a></>
+
             ) : (
               <button
                 type="button"

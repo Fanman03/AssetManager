@@ -1,117 +1,12 @@
-import { MongoClient, WithId } from 'mongodb';
+import { MongoClient, WithId, Db } from 'mongodb';
 import type { Asset } from '@/types/asset';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+export type DbStatus = 'connected' | 'demo' | 'error';
 
 const uri = process.env.MONGODB_URI!;
-const client = new MongoClient(uri);
-
 const isDemoMode = process.env.DEMO_MODE === 'true';
-
-const demoDummyAssets: Asset[] = [
-  {
-    _id: 'D-00001',
-    Status: 0,
-    Purchase_Date: 1661196600,
-    Brand: 'Dell',
-    Model: 'OptiPlex 5060 MFF',
-    Image: 'Dell/OptiPlex-5060M',
-    Description: 'Test Asset 1',
-    Location: 'Missouri Office',
-    Serial_Number: 'DB2R0T2',
-    CPU: 'Intel Core i5-8500T',
-    RAM: '16GB DDR4-2666 (2/2)',
-    Storage_1: '512GB M.2 NVMe'
-  }, {
-    _id: 'D-00002',
-    Status: 1,
-    Purchase_Date: 1661196600,
-    Brand: 'Dell',
-    Model: 'OptiPlex 5060 MFF',
-    Image: 'Dell/OptiPlex-5060M',
-    Description: 'Test Asset 2',
-    Location: 'Missouri Office',
-    Serial_Number: 'DB2R0T2',
-    CPU: 'Intel Core i5-8500T',
-    RAM: '16GB DDR4-2666 (2/2)',
-    Storage_1: '512GB M.2 NVMe',
-    Display_1: '$M-00001',
-    Display_2: '$M-00002'
-  }, {
-    _id: 'M-00001',
-    Status: 1,
-    Purchase_Date: 1661196600,
-    Brand: 'Dell',
-    Model: 'P2419H',
-    Image: 'Dell/P2419h',
-    Description: 'Test Asset 3',
-    Location: "Missouri Office",
-    Serial_Number: "8D42P33",
-    Resolution: '1920x1080',
-    Panel_Technology: 'IPS',
-  },
-  {
-    _id: 'M-00002',
-    Status: 1,
-    Purchase_Date: 1661196600,
-    Brand: 'Dell',
-    Model: 'P2419H',
-    Image: 'Dell/P2419h',
-    Description: 'Test Asset 4',
-    Location: "Missouri Office",
-    Serial_Number: "1G07JD2",
-    Resolution: '1920x1080',
-    Panel_Technology: 'IPS',
-  },
-  {
-    _id: 'AP-00003',
-    Status: 1,
-    Purchase_Date: 1672556460,
-    Brand: 'Ubiquiti',
-    Model: 'U6-Enterprise',
-    Image: 'Ubiquiti/U6Enterprise',
-    Description: 'Test Asset 7',
-    Location: "Missouri Office West Hallway",
-    MAC_ID: "AA:BB:CC:DD:EE:FF",
-    Serial_Number: "000000000"
-  }, {
-    _id: 'AP-00001',
-    Status: 3,
-    Purchase_Date: 1472556460,
-    Brand: 'Ubiquiti',
-    Model: 'UAP-AC-Pro',
-    Image: 'Ubiquiti/U6Pro',
-    Description: 'Test Asset 6',
-    Location: "Missouri Office West Hallway",
-    MAC_ID: "AA:BB:CC:DD:EE:FF",
-    Serial_Number: "000000000",
-    Sale_Date: "January 1, 2023"
-  },
-  {
-    _id: 'AP-00002',
-    Status: 2,
-    Purchase_Date: 1472556460,
-    Brand: 'Ubiquiti',
-    Model: 'UAP-AC-Pro',
-    Image: 'Ubiquiti/U6Pro',
-    Description: 'Test Asset 5',
-    Location: "Missouri Office West Hallway",
-    MAC_ID: "AA:BB:CC:DD:EE:FF",
-    Serial_Number: "000000000",
-    Sale_Date: "January 1, 2023"
-  },
-  {
-    _id: 'L-00002',
-    Status: 4,
-    Purchase_Date: 1661196600,
-    Brand: 'Dell',
-    Model: 'Latitude 9420',
-    Image: 'Dell/Latitude-9420',
-    Description: 'Test Asset 8',
-    Location: 'Missouri Office',
-    Serial_Number: 'CYB66M3',
-    CPU: 'Intel Core i7-1185G7',
-    RAM: '32GB LPDDR4X-4267 (0/0)'
-  }
-];
 
 const fallbackDummyAssets: Asset[] = [
   {
@@ -121,73 +16,118 @@ const fallbackDummyAssets: Asset[] = [
     Brand: 'Database',
     Model: 'Connection Failed',
     Description: 'Make sure the MONGODB_URI environment variable is set properly.'
-  },
+  }
 ];
 
-function getDummyAssets(): Asset[] {
-  return isDemoMode ? demoDummyAssets : fallbackDummyAssets;
+// ---- module-level singletons (cached across route calls in production)
+let client: MongoClient | null = null;
+let dbPromise: Promise<Db | null> | null = null;
+let cachedDemoAssets: Asset[] | null = null;
+let lastError: unknown = null;
+let currentStatus: DbStatus = 'error';
+
+// ---- helpers
+
+async function loadDemoAssetsFromFile(): Promise<Asset[]> {
+  if (cachedDemoAssets) return cachedDemoAssets;
+
+  const file = path.join(process.cwd(), 'data', 'demo-assets.json');
+  const json = await fs.readFile(file, 'utf8');
+  cachedDemoAssets = JSON.parse(json) as Asset[];
+  return cachedDemoAssets;
 }
 
 function fallbackToMemory(message: string) {
   console.warn(`[DB Warning] ${message} Falling back to in-memory data (DEMO_MODE=${isDemoMode}).`);
+  currentStatus = isDemoMode ? 'demo' : 'error';
 }
 
-let dbPromise: Promise<ReturnType<typeof client.db>> | null = null;
+export function getDatabaseStatus(): { status: DbStatus; demoMode: boolean; lastError?: string } {
+  return {
+    status: currentStatus,
+    demoMode: isDemoMode,
+    lastError: lastError instanceof Error ? lastError.message : undefined
+  };
+}
 
-async function connectToDb() {
-  if (dbPromise) return dbPromise;
+// ---- connection
 
-  try {
-    dbPromise = client.connect().then(client => client.db('asset-db'));
-    const db = await dbPromise;
-
-    const count = await db.collection<Asset>('assets').countDocuments();
-    if (count === 0) {
-      await db.collection<Asset>('assets').insertMany(demoDummyAssets);
-      console.log('[DB Init] Seeded initial dummy asset data.');
-    }
-
-    return db;
-  } catch (err) {
-    console.log(err);
-    fallbackToMemory('Unable to connect to MongoDB.');
-    dbPromise = null;
+export async function connectToDb(): Promise<Db | null> {
+  if (!uri) {
+    fallbackToMemory('MONGODB_URI missing.');
     return null;
   }
+
+  if (dbPromise) return dbPromise;
+
+  dbPromise = (async () => {
+    try {
+      client = new MongoClient(uri);
+      const conn = await client.connect();
+      const db = conn.db('asset-db');
+      currentStatus = 'connected';
+
+      // seed if empty
+      const count = await db.collection<Asset>('assets').countDocuments();
+      if (count === 0) {
+        const seed = await loadDemoAssetsFromFile();
+        await db.collection<Asset>('assets').insertMany(seed);
+        console.log('[DB Init] Seeded initial dummy asset data from /data/demo-assets.json');
+      }
+
+      return db;
+    } catch (err) {
+      lastError = err;
+      console.error(err);
+      fallbackToMemory('Unable to connect to MongoDB.');
+      return null;
+    }
+  })();
+
+  return dbPromise;
 }
 
-// --- API Methods ---
+// ---- in-memory fallbacks
+
+async function getDummyAssets(): Promise<Asset[]> {
+  if (isDemoMode) {
+    return loadDemoAssetsFromFile();
+  }
+  return fallbackDummyAssets;
+}
+
+// ---- API methods
 
 export async function getAllAssets(): Promise<Asset[]> {
   const db = await connectToDb();
-  if (!db) return getDummyAssets();
+  if (!db) return await getDummyAssets();
 
   try {
     const docs: WithId<Asset>[] = await db.collection<Asset>('assets').find({}).toArray();
-    return docs.map(doc => ({
-      ...doc,
-      _id: doc._id.toString(),
-    })) as Asset[];
+    return docs.map(doc => ({ ...doc, _id: doc._id.toString() })) as Asset[];
   } catch (err) {
+    lastError = err;
     fallbackToMemory('Error fetching assets.');
-    return getDummyAssets();
+    return await getDummyAssets();
   }
 }
 
 export async function getAssetById(id: string): Promise<Asset | null> {
   const db = await connectToDb();
-  if (!db) return getDummyAssets().find(a => a._id === id) || null;
+  if (!db) {
+    const assets = await getDummyAssets();
+    return assets.find(a => a._id === id) || null;
+  }
 
   try {
     const doc = await db.collection<Asset>('assets').findOne({ _id: id });
     if (!doc) return null;
-    return {
-      ...doc,
-      _id: doc._id.toString(),
-    } as Asset;
+    return { ...doc, _id: doc._id.toString() } as Asset;
   } catch (err) {
+    lastError = err;
     fallbackToMemory('Error fetching asset by ID.');
-    return getDummyAssets().find(a => a._id === id) || null;
+    const assets = await getDummyAssets();
+    return assets.find(a => a._id === id) || null;
   }
 }
 
@@ -202,6 +142,7 @@ export async function deleteAssetById(id: string): Promise<boolean> {
     const result = await db.collection<Asset>('assets').deleteOne({ _id: id });
     return result.deletedCount === 1;
   } catch (err) {
+    lastError = err;
     fallbackToMemory('Error deleting asset.');
     return false;
   }
@@ -213,18 +154,59 @@ export async function insertAsset(data: Asset): Promise<Asset> {
   const db = await connectToDb();
   if (!db) {
     fallbackToMemory('Insert unsupported in fallback mode.');
-    getDummyAssets().push(data);
+    const assets = await getDummyAssets();
+    assets.push(data);
     return data;
   }
 
   try {
     const result = await db.collection<Asset>('assets').insertOne(data);
-    if (!result.acknowledged) {
-      throw new Error('Failed to insert asset');
-    }
+    if (!result.acknowledged) throw new Error('Failed to insert asset');
     return data;
   } catch (err) {
+    lastError = err;
     fallbackToMemory('Error inserting asset.');
     return data;
   }
+}
+
+// ---- NEW: export the entire DB as JSON (programmatic helper)
+export async function exportAllAssets(): Promise<Asset[]> {
+  return getAllAssets();
+}
+
+// ---- NEW: import many assets from JSON (programmatic helper)
+export async function importAssetsFromJson(assets: Asset[], overwrite = false): Promise<{
+  inserted: number;
+  replaced: number;
+}> {
+  const db = await connectToDb();
+  if (!db) {
+    fallbackToMemory('Bulk import unsupported in fallback mode.');
+    return { inserted: 0, replaced: 0 };
+  }
+
+  const col = db.collection<Asset>('assets');
+
+  if (overwrite) {
+    const { deletedCount } = await col.deleteMany({});
+    console.log(`[DB Import] Cleared ${deletedCount} assets.`);
+  }
+
+  // Upsert by _id
+  let inserted = 0;
+  let replaced = 0;
+
+  for (const asset of assets) {
+    if (!asset._id) {
+      console.warn('[DB Import] Skipped asset without _id');
+      continue;
+    }
+
+    const res = await col.replaceOne({ _id: asset._id }, asset, { upsert: true });
+    if (res.upsertedId) inserted += 1;
+    else replaced += res.modifiedCount;
+  }
+
+  return { inserted, replaced };
 }

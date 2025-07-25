@@ -1,32 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import { getAssetById, insertAsset } from '@/lib/db';
 import type { Asset } from '@/types/asset';
-
-const COOKIE_NAME = 'admin_auth';
-const JWT_SECRET = process.env.JWT_SECRET!;
+import { verifyAdmin } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
+const auth = verifyAdmin(req);
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
   try {
-    const cookieHeader = req.headers.get('cookie') || '';
-    const cookies = Object.fromEntries(
-      cookieHeader.split('; ').map(cookie => {
-        const [key, ...v] = cookie.split('=');
-        return [key, decodeURIComponent(v.join('='))];
-      })
-    );
-
-    const token = cookies[COOKIE_NAME];
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized: No token' }, { status: 401 });
-    }
-
-    try {
-      jwt.verify(token, JWT_SECRET);
-    } catch (err) {
-      return NextResponse.json({ error: 'Unauthorized: Invalid token' }, { status: 401 });
-    }
-
     const { sourceId, newId } = await req.json();
 
     if (!sourceId || !newId) {
