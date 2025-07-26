@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import Navbar from '@/components/Navbar';
 import AssetDeleteButton from '@/components/AssetDeleteButton';
 import AssetCloneButton from '@/components/AssetCloneButton';
+import SafeAssetImage from '@/components/SafeAssetImage';
 import markdownit from 'markdown-it';
 
 const StatusMap: Record<number, { icon: string; className: string; label: string }> = {
@@ -77,7 +78,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <Navbar variant='backBtn' />
-      <main className="container mt-5">
+      <main className="container mt-4">
         <div className="d-flex justify-content-between align-items-start">
           <div>
             <h1><span className="me-2">{statusIcon(Status)}</span><span className="me-2 statusText">{statusText(Status)}</span></h1>
@@ -99,16 +100,14 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
             )}
           </div>
 
-          {imageUrl && (
-            <div style={{ maxWidth: '200px' }}>
-              <img
-                src={imageUrl}
-                alt={`${Brand} ${Model}`}
-                style={{ width: '100%', height: 'auto' }}
-              />
-            </div>
-          )}
-
+          <div style={{ maxWidth: '200px' }}>
+            <SafeAssetImage
+              src={imageUrl}
+              type={asset.Type} // <— the key that decides the type-specific fallback
+              alt={`${Brand} ${Model}`}
+              style={{ width: '100%', height: 'auto' }}
+            />
+          </div>
         </div>
         <p>
           <a className="btn btn-primary m-2 assetControlBtn" href={`/i/${asset._id}`}>

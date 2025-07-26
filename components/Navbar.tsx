@@ -109,6 +109,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 <a
                   type="button"
                   className="btn btn-outline-light ms-2"
+                  id="settingsBtn"
                   href="/settings"
                   title="Settings"
                 >

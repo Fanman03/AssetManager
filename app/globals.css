@@ -60,7 +60,7 @@ body {
   }
 
   #logoutBtn,
-  #loginBtn {
+  #loginBtn, #settingsBtn {
     display: none;
   }
 

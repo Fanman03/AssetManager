@@ -18,7 +18,7 @@ export default function CreateAssetForm({ defaultId }: Props) {
         Status: 1,
         Description: '',
         Purchase_Date: '',
-        Image: '',
+        Type: '',
     });
 
     // For extra (arbitrary) properties
@@ -71,8 +71,8 @@ export default function CreateAssetForm({ defaultId }: Props) {
     }
 
     return (
-        <div className="container mt-5">
-            <h1>Create New Asset</h1>
+        <div className="container mt-3">
+            <h1 className="display-6 fw-normal">Create New Asset</h1>
             <form onSubmit={handleSubmit} className="mt-4">
                 <div className="mb-3">
                     <label htmlFor="_id" className="form-label">Asset ID</label>
@@ -153,13 +153,13 @@ export default function CreateAssetForm({ defaultId }: Props) {
                 </div>
 
                 <div className="mb-3">
-                    <label htmlFor="Image" className="form-label">Image Path</label>
+                    <label htmlFor="Type" className="form-label">Type</label>
                     <input
-                        id="Image"
-                        name="Image"
+                        id="Type"
+                        name="Type"
                         type="text"
                         className="form-control"
-                        value={formData.Image}
+                        value={formData.Type}
                         onChange={onChange}
                     />
                 </div>

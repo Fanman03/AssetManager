@@ -8,8 +8,7 @@ export default class Footer extends Component {
                 <div className="row align-items-center text-center text-md-start">
                     {/* Left side */}
                     <div className="col-12 col-md-6 d-flex flex-column flex-md-row align-items-center justify-content-center justify-content-md-start mb-3 mb-md-0">
-                        <span className="text-muted">
-                            <i className="bi bi-pc-display me-2"></i>Asset Manager v{process.env.version} by Jack Pendleton
+                        <span className="text-muted">Asset Manager v{process.env.version} by Jack Pendleton
                         </span>
                     </div>
 

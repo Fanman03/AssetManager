@@ -10,7 +10,7 @@ interface CreateAssetData {
     Status?: number;
     Description?: string;
     Purchase_Date?: number | null;
-    Image?: string;
+    Type?: string;
     [key: string]: any;
 }
 
