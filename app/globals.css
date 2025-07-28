@@ -125,13 +125,3 @@ body {
 .pagination {
   margin-left: 10px;
 }
-
-.input-group-text {
-  background-color: #fff;
-}
-
-@media (prefers-color-scheme: dark) {
-  .input-group-text {
-    background-color: #212529;
-  }
-}
