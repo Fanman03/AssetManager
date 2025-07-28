@@ -10,6 +10,10 @@ body {
   font-size: 2.75rem;
 }
 
+.editAssetTag {
+  font-family: 'Roboto Mono', monospace;
+}
+
 .assetControlBtn {
   min-width: 150px;
 }
@@ -60,7 +64,8 @@ body {
   }
 
   #logoutBtn,
-  #loginBtn, #settingsBtn {
+  #loginBtn,
+  #settingsBtn {
     display: none;
   }
 
@@ -115,4 +120,18 @@ body {
   z-index: 1000;
   user-select: none;
   transition: background-color 0.2s ease;
+}
+
+.pagination {
+  margin-left: 10px;
+}
+
+.input-group-text {
+  background-color: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  .input-group-text {
+    background-color: #212529;
+  }
 }

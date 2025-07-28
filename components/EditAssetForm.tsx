@@ -119,7 +119,7 @@ export default function EditAssetForm({ asset }: EditAssetFormProps) {
 
     return (
         <div className="container mt-3">
-            <h1 className="display-6 fw-normal">Edit Asset: <span className="assetTag">{asset._id}</span></h1>
+            <h1 className="assetTitle display-6 fw-normal">Edit asset:<span className="assetSeperator">-</span><span className="editAssetTag">{asset._id}</span></h1>
             <form onSubmit={handleSubmit} className="mt-4">
                 {/* Brand */}
                 <div className="mb-3">
