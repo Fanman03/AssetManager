@@ -12,14 +12,6 @@ const tagUrl: string = process.env.NEXT_PUBLIC_TAG_URL!;
 
 declare const DATAMatrix: (opts: { msg: string; dim: number }) => SVGSVGElement;
 
-declare global {
-  interface Window {
-    ReactNativeWebView?: {
-      postMessage: (message: string) => void;
-    };
-  }
-}
-
 interface Props {
   asset: Asset;
 }
@@ -102,26 +94,10 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
   const downloadImage = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    const filename = `barcode-${asset._id}.png`;
-    const dataUrl = canvas.toDataURL('image/png');
-
-    // Check if we're in React Native WebView
-    if (window.ReactNativeWebView && /ReactNative/i.test(navigator.userAgent)) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        type: 'download',
-        filename,
-        dataUrl,
-      }));
-    } else {
-      // Standard browser download
-      const link = document.createElement('a');
-      link.download = filename;
-      link.href = dataUrl;
-      document.body.appendChild(link); // Required for Firefox
-      link.click();
-      document.body.removeChild(link);
-    }
+    const link = document.createElement('a');
+    link.download = `barcode-${asset._id}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
   };
 
   const printWithSystemDialog = () => {
