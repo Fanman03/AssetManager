@@ -78,8 +78,6 @@ export default function ClientAssetList({ initialAssets }: Props) {
     Cookies.set('showInServiceOnly', String(showInServiceOnly), { expires: 365 });
   }, [showInServiceOnly]);
 
-
-
   const sortedAssets = useMemo(() => {
     const copy = [...filteredAssets];
 
@@ -362,6 +360,57 @@ export default function ClientAssetList({ initialAssets }: Props) {
         ) : (
           <h3 className="text-center text-muted">No results found.</h3>
         )}
+
+        {(endIndex - startIndex) > 24 && (
+        <div className="d-flex justify-content-between align-items-center my-2">
+          {sortedAssets.length > 0 && (
+            <p className="text-muted my-auto">
+              Showing {startIndex + 1}–{endIndex} of {sortedAssets.length} item{sortedAssets.length !== 1 && 's'}
+            </p>
+          )}
+          <nav>
+            <ul className="pagination mb-0">
+              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                <button
+                  className="page-link text-primary"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  aria-label="Previous"
+                >
+                  <i className="bi bi-chevron-left" />
+                </button>
+              </li>
+
+              {getPageNumbers(currentPage, totalPages).map((page, index) =>
+                page === '...' ? (
+                  <li key={`ellipsis-${index}`} className="page-item disabled">
+                    <span className="page-link">…</span>
+                  </li>
+                ) : (
+                  <li key={page} className={`page-item ${page === currentPage ? 'active' : ''}`}>
+                    <button
+                      className="page-link"
+                      style={{ backgroundColor: page === currentPage ? '#0d6efd' : undefined, color: page === currentPage ? 'white' : undefined }}
+                      onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  </li>
+                )
+              )}
+
+              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                <button
+                  className="page-link text-primary"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  aria-label="Next"
+                >
+                  <i className="bi bi-chevron-right" />
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div> )}
+
       </main>
     </>
   );
