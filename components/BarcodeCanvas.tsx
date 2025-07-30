@@ -28,6 +28,13 @@ type DymoPrinter = {
   isConnected: boolean;
 };
 
+declare global {
+  interface Window {
+    ReactNativeWebView?: {
+      postMessage: (message: string) => void;
+    };
+  }
+}
 
 const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -91,13 +98,35 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
   }, [asset]);
 
 
+  // const downloadImage = () => {
+  //   const canvas = canvasRef.current;
+  //   if (!canvas) return;
+  //   const link = document.createElement('a');
+  //   link.download = `barcode-${asset._id}.png`;
+  //   link.href = canvas.toDataURL();
+  //   link.click();
+  // };
+
   const downloadImage = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const link = document.createElement('a');
-    link.download = `barcode-${asset._id}.png`;
-    link.href = canvas.toDataURL();
-    link.click();
+
+    const base64 = canvas.toDataURL('image/png');
+    const filename = `barcode-${asset._id}.png`;
+
+    // If we're inside a React Native WebView, hand off to native code:
+    if (window.ReactNativeWebView?.postMessage) {
+      window.ReactNativeWebView.postMessage(
+        JSON.stringify({ type: 'download', filename, base64 })
+      );
+    }
+    // Otherwise, assume we're in a browser and can use <a download>
+    else {
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = base64;
+      link.click();
+    }
   };
 
   const printWithSystemDialog = () => {
