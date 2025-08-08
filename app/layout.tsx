@@ -16,7 +16,7 @@ export const metadata = {
     siteName: appName,
     images: [
       {
-        url: 'https://your-domain.com/img/opengraph-default.png',
+        url: `${process.env.NEXT_PUBLIC_BASE_DOMAIN}/img/opengraph.png`,
         width: 512,
         height: 512,
       },
@@ -28,7 +28,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: appName,
     description: 'Asset tracking system',
-    images: ['https://your-domain.com/img/opengraph.png'],
+    images: [`${process.env.NEXT_PUBLIC_BASE_DOMAIN}/img/opengraph.png`],
   },
 };
 
