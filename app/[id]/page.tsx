@@ -3,9 +3,7 @@ import { format } from 'date-fns';
 import Navbar from '@/components/Navbar';
 import AssetDeleteButton from '@/components/AssetDeleteButton';
 import AssetCloneButton from '@/components/AssetCloneButton';
-import SafeAssetImage from '@/components/SafeAssetImage';
 import markdownit from 'markdown-it';
-import { TYPE_FALLBACKS, TYPE_ALIASES, GENERIC_FALLBACK } from '@/lib/imageConstants';
 
 const StatusMap: Record<number, { icon: string; className: string; label: string }> = {
   0: { icon: 'check-circle-fill', className: 'text-info', label: 'Spare' },
@@ -68,13 +66,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
 
   const { _id, Brand, Model, Status, Purchase_Date, Image, Description, ...rest } = asset;
 
-
-  // Fix for backslashes in Image (replace \ with /)
-  const safeImage = typeof Image === 'string' ? Image.replace(/\\/g, '/') : null;
-
-  const imageUrl = safeImage
-    ? `https://raw.githubusercontent.com/Fanman03/asset-images/master/${safeImage}.png`
-    : null;
+  const imgSrc = `${process.env.NEXT_PUBLIC_BASE_DOMAIN}/thumb/${_id}`;
 
   return (
     <>
@@ -102,9 +94,8 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
           </div>
 
           <div style={{ maxWidth: '200px' }}>
-            <SafeAssetImage
-              src={imageUrl}
-              type={asset.Type} // <— the key that decides the type-specific fallback
+            <img
+              src={imgSrc}
               alt={`${Brand} ${Model}`}
               style={{ width: '100%', height: 'auto' }}
             />
