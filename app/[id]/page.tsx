@@ -178,7 +178,7 @@ function resolveFallbackImageUrl(src: string | null | undefined, type: string | 
   }
 
   candidates.push(GENERIC_FALLBACK);
-  return `https://raw.githubusercontent.com/Fanman03/asset-images/master${candidates[0]}`; // Use first viable candidate
+  return `${candidates[0]}`; 
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -190,6 +190,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title: 'Asset Not Found',
       description: 'This asset does not exist or has been removed.',
       openGraph: {
+        siteName: process.env.NEXT_PUBLIC_APP_NAME,
         title: 'Asset Not Found',
         description: 'This asset does not exist or has been removed.',
         images: [`${process.env.NEXT_PUBLIC_BASE_DOMAIN}/img/opengraph.png`],
@@ -210,7 +211,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title: `${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
     description: Description || `${Brand} ${Model} asset detail page`,
     openGraph: {
-      title: `${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
+      siteName: process.env.NEXT_PUBLIC_APP_NAME,
+      title: `${id}`,
       description: `${Brand} ${Model} - Description ${Description}`,
       type: 'website',
       url: `${process.env.NEXT_PUBLIC_BASE_DOMAIN}/${id}`,
