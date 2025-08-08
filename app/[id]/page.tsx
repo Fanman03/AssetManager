@@ -5,6 +5,7 @@ import AssetDeleteButton from '@/components/AssetDeleteButton';
 import AssetCloneButton from '@/components/AssetCloneButton';
 import SafeAssetImage from '@/components/SafeAssetImage';
 import markdownit from 'markdown-it';
+import { TYPE_FALLBACKS, TYPE_ALIASES, GENERIC_FALLBACK } from '@/lib/imageConstants';
 
 const StatusMap: Record<number, { icon: string; className: string; label: string }> = {
   0: { icon: 'check-circle-fill', className: 'text-info', label: 'Spare' },
@@ -161,9 +162,72 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   );
 }
 
+function resolveFallbackImageUrl(src: string | null | undefined, type: string | null | undefined): string {
+  const candidates: string[] = [];
+
+  if (src) {
+    candidates.push(src);
+  }
+
+  if (type) {
+    const t = type.toLowerCase().trim();
+    const canonical = TYPE_ALIASES[t] || t;
+    if (TYPE_FALLBACKS[canonical]) {
+      candidates.push(TYPE_FALLBACKS[canonical]);
+    }
+  }
+
+  candidates.push(GENERIC_FALLBACK);
+  return `https://your-domain.com${candidates[0]}`; // Use first viable candidate
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const asset = await getAssetById(id);
+
+  if (!asset) {
+    return {
+      title: 'Asset Not Found',
+      description: 'This asset does not exist or has been removed.',
+      openGraph: {
+        title: 'Asset Not Found',
+        description: 'This asset does not exist or has been removed.',
+        images: ['https://your-domain.com/img/opengraph.png'],
+      },
+    };
+  }
+
+  const { Brand, Model, Image, Description, Type } = asset;
+
+  const safeImage = typeof Image === 'string' ? Image.replace(/\\/g, '/') : null;
+  const hostedImageUrl = safeImage
+    ? `https://raw.githubusercontent.com/Fanman03/asset-images/master/${safeImage}.png`
+    : null;
+
+  const imageUrl = resolveFallbackImageUrl(hostedImageUrl, Type);
+
   return {
     title: `${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
+    description: Description || `${Brand} ${Model} asset detail page`,
+    openGraph: {
+      title: `${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
+      description: `${Brand} ${Model} - Description ${Description}`,
+      type: 'website',
+      url: `${process.env.NEXT_PUBLIC_BASE_DOMAIN}/${id}`,
+      images: [
+        {
+          url: imageUrl,
+          width: 512,
+          height: 512,
+          alt: `${Brand} ${Model}`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
+      description: `${Brand} ${Model} - Description ${Description}`,
+      images: [imageUrl],
+    },
   };
 }

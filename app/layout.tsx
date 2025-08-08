@@ -8,6 +8,28 @@ const appName = process.env.NEXT_PUBLIC_APP_NAME;
 
 export const metadata = {
   title: appName,
+  description: 'Asset tracking system',
+  openGraph: {
+    title: appName,
+    description: 'Asset tracking system',
+    url: process.env.NEXT_PUBLIC_BASE_DOMAIN,
+    siteName: appName,
+    images: [
+      {
+        url: 'https://your-domain.com/img/opengraph-default.png',
+        width: 512,
+        height: 512,
+      },
+    ],
+        locale: 'en_US',
+        type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: appName,
+    description: 'Asset tracking system',
+    images: ['https://your-domain.com/img/opengraph.png'],
+  },
 };
 
 const roboto = Roboto({
