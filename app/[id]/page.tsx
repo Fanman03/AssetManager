@@ -178,7 +178,7 @@ function resolveFallbackImageUrl(src: string | null | undefined, type: string | 
   }
 
   candidates.push(GENERIC_FALLBACK);
-  return `https://your-domain.com${candidates[0]}`; // Use first viable candidate
+  return `https://raw.githubusercontent.com/Fanman03/asset-images/master${candidates[0]}`; // Use first viable candidate
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -192,7 +192,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       openGraph: {
         title: 'Asset Not Found',
         description: 'This asset does not exist or has been removed.',
-        images: ['https://your-domain.com/img/opengraph.png'],
+        images: [`${process.env.NEXT_PUBLIC_BASE_DOMAIN}/img/opengraph.png`],
       },
     };
   }
