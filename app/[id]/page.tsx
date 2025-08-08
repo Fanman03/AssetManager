@@ -162,7 +162,10 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   );
 }
 
-function resolveFallbackImageUrl(src: string | null | undefined, type: string | null | undefined): string {
+function resolveFallbackImageCandidates(
+  src: string | null | undefined,
+  type: string | null | undefined
+): string[] {
   const candidates: string[] = [];
 
   if (src) {
@@ -173,12 +176,12 @@ function resolveFallbackImageUrl(src: string | null | undefined, type: string | 
     const t = type.toLowerCase().trim();
     const canonical = TYPE_ALIASES[t] || t;
     if (TYPE_FALLBACKS[canonical]) {
-      candidates.push(TYPE_FALLBACKS[canonical]);
+      candidates.push(`${process.env.NEXT_PUBLIC_BASE_DOMAIN}${TYPE_FALLBACKS[canonical]}`);
     }
   }
 
-  candidates.push(GENERIC_FALLBACK);
-  return `${candidates[0]}`; 
+  candidates.push(`${process.env.NEXT_PUBLIC_BASE_DOMAIN}${GENERIC_FALLBACK}`);
+  return Array.from(new Set(candidates));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -205,7 +208,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     ? `https://raw.githubusercontent.com/Fanman03/asset-images/master/${safeImage}.png`
     : null;
 
-  const imageUrl = resolveFallbackImageUrl(hostedImageUrl, Type);
+  const imageCandidates = resolveFallbackImageCandidates(hostedImageUrl, Type);
 
   return {
     title: `${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
@@ -213,23 +216,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     openGraph: {
       siteName: process.env.NEXT_PUBLIC_APP_NAME,
       title: `${id}`,
-      description: `${Brand} ${Model} - Description ${Description}`,
+      description: `${Brand} ${Model} - ${Description}`,
       type: 'website',
       url: `${process.env.NEXT_PUBLIC_BASE_DOMAIN}/${id}`,
-      images: [
-        {
-          url: imageUrl,
-          width: 512,
-          height: 512,
-          alt: `${Brand} ${Model}`,
-        },
-      ],
+      images: imageCandidates.map((url) => ({
+        url,
+        width: 512,
+        height: 512,
+        alt: `${Brand} ${Model}`,
+      })),
     },
     twitter: {
       card: 'summary_large_image',
       title: `${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
-      description: `${Brand} ${Model} - Description ${Description}`,
-      images: [imageUrl],
+      description: `${Brand} ${Model} - ${Description}`,
+      images: imageCandidates,
     },
   };
 }
