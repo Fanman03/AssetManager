@@ -162,28 +162,6 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   );
 }
 
-function resolveFallbackImageCandidates(
-  src: string | null | undefined,
-  type: string | null | undefined
-): string[] {
-  const candidates: string[] = [];
-
-  if (src) {
-    candidates.push(src);
-  }
-
-  if (type) {
-    const t = type.toLowerCase().trim();
-    const canonical = TYPE_ALIASES[t] || t;
-    if (TYPE_FALLBACKS[canonical]) {
-      candidates.push(`${process.env.NEXT_PUBLIC_BASE_DOMAIN}${TYPE_FALLBACKS[canonical]}`);
-    }
-  }
-
-  candidates.push(`${process.env.NEXT_PUBLIC_BASE_DOMAIN}${GENERIC_FALLBACK}`);
-  return Array.from(new Set(candidates));
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const asset = await getAssetById(id);
@@ -203,13 +181,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const { Brand, Model, Image, Description, Type } = asset;
 
-  const safeImage = typeof Image === 'string' ? Image.replace(/\\/g, '/') : null;
-  const hostedImageUrl = safeImage
-    ? `https://raw.githubusercontent.com/Fanman03/asset-images/master/${safeImage}.png`
-    : null;
-
-  const imageCandidates = resolveFallbackImageCandidates(hostedImageUrl, Type);
-
   return {
     title: `${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
     description: Description || `${Brand} ${Model} asset detail page`,
@@ -219,18 +190,20 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       description: `${Brand} ${Model} - ${Description}`,
       type: 'website',
       url: `${process.env.NEXT_PUBLIC_BASE_DOMAIN}/${id}`,
-      images: imageCandidates.map((url) => ({
-        url,
-        width: 512,
-        height: 512,
-        alt: `${Brand} ${Model}`,
-      })),
+      images: [
+        {
+          url: `${process.env.NEXT_PUBLIC_BASE_DOMAIN}/thumb/${id}`,
+          width: 512,
+          height: 512,
+          alt: `${Brand} ${Model}`,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${id} - ${process.env.NEXT_PUBLIC_APP_NAME}`,
       description: `${Brand} ${Model} - ${Description}`,
-      images: imageCandidates,
+      images: `${process.env.NEXT_PUBLIC_BASE_DOMAIN}/thumb/${id}`,
     },
   };
 }
