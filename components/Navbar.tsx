@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-const appName = process.env.NEXT_PUBLIC_APP_NAME;
+const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Asset Manager';
 
 type NavbarProps = {
   variant?: 'default' | 'backBtn';
