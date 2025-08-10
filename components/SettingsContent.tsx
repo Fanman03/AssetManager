@@ -69,6 +69,22 @@ export default function SettingsContent() {
         }
     };
 
+    const handleExportCSV = async () => {
+        try {
+            const res = await fetch('/api/db/export/csv');
+            if (!res.ok) throw new Error('Failed to export database.');
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `assets-export-${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            alert(`Export failed: ${(e as Error).message}`);
+        }
+    };
+
     // Import database from JSON file (requires auth)
     const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files?.[0]) return;
@@ -123,15 +139,14 @@ export default function SettingsContent() {
                         <span className="text-white">Checking...</span>
                     )}
                 </p>
-
                 <button
-                    className="btn btn-primary m-2"
+                    className="btn btn-primary me-2 my-2"
                     onClick={handleExport}>
                     <i className="bi bi-download me-2"></i>Export Database
                 </button>
 
                 <label
-                    className={`btn btn-secondary m-2 ${authorized === false ? 'disabled' : ''}`}
+                    className={`btn btn-secondary me-2 my-2 ${authorized === false ? 'disabled' : ''}`}
                 >
                     <i className="bi bi-upload me-2"></i>
                     {importing ? 'Importing...' : 'Import Database'}
@@ -143,6 +158,10 @@ export default function SettingsContent() {
                         disabled={importing || !authorized}
                     />
                 </label>
+                <p>
+                    <button className="btn btn-success me-2 my-2" onClick={handleExportCSV}>
+                        <i className="bi bi-filetype-csv me-2"></i>Export to CSV</button>
+                </p>
             </section>
         </div>
     );

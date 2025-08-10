@@ -8,10 +8,10 @@ const appName = process.env.NEXT_PUBLIC_APP_NAME;
 
 export const metadata = {
   title: appName,
-  description: 'Asset tracking system',
+  description: 'Self-hosted asset tracking system.',
   openGraph: {
     title: appName,
-    description: 'Asset tracking system',
+    description: 'Self-hosted asset tracking system.',
     url: process.env.NEXT_PUBLIC_BASE_DOMAIN,
     siteName: appName,
     images: [
@@ -27,7 +27,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: appName,
-    description: 'Asset tracking system',
+    description: 'Self-hosted asset tracking system.',
     images: [`${process.env.NEXT_PUBLIC_BASE_DOMAIN}/img/opengraph.png`],
   },
 };

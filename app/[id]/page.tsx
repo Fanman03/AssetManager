@@ -74,7 +74,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
       <main className="container mt-4">
         <div className="d-flex justify-content-between align-items-start">
           <div>
-            <h1><span className="me-2">{statusIcon(Status)}</span><span className="me-2 statusText">{statusText(Status)}</span></h1>
+            <h1 className="d-flex align-items-center"><span className="me-2">{statusIcon(Status)}</span><span className="me-2 statusText">{statusText(Status)}</span></h1>
             <h1 className="assetTitle">
               <span className='assetTag'>{_id}</span><span className="assetSeperator">-</span>{Brand} {Model}
             </h1>
@@ -131,13 +131,19 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                       return <a href={`/${targetId}`}>{targetId}</a>;
                     }
 
-                    // Special Dell support link for Serial/Serial_Number
                     const keyLower = key.toLowerCase();
-                    const isSerialKey = keyLower === 'serial' || keyLower === 'serial_number';
+                    const isSerialKey = keyLower === 'serial' || keyLower === 'serial_number' || keyLower === 'serial number' || keyLower === 'service_tag';
 
+                    // Special Dell support link for Serial/Serial_Number/Service_Tag
                     if (Brand?.toLowerCase() === 'dell' && isSerialKey && strVal) {
                       const dellUrl = `https://www.dell.com/support/home/en-us/product-support/servicetag/${strVal}/overview`;
                       return <a href={dellUrl} target="_blank" rel="noopener noreferrer">{strVal}</a>;
+                    }
+
+                    // Special HP support link for Serial/Serial_Number/Service_Tag
+                    if ((Brand?.toLowerCase() === 'hp' || Brand?.toLowerCase() === 'hewlett-packard') && isSerialKey && strVal) {
+                      const hpUrl = `https://partsurfer.hp.com/?searchtext=${strVal}`;
+                      return <a href={hpUrl} target="_blank" rel="noopener noreferrer">{strVal}</a>;
                     }
 
                     // Default rendering

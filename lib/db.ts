@@ -19,14 +19,14 @@ const fallbackDummyAssets: Asset[] = [
   }
 ];
 
-// ---- module-level singletons (cached across route calls in production)
+// module-level singletons (cached across route calls in production)
 let client: MongoClient | null = null;
 let dbPromise: Promise<Db | null> | null = null;
 let cachedDemoAssets: Asset[] | null = null;
 let lastError: unknown = null;
 let currentStatus: DbStatus = 'error';
 
-// ---- helpers
+// helpers
 
 async function loadDemoAssetsFromFile(): Promise<Asset[]> {
   if (cachedDemoAssets) return cachedDemoAssets;
@@ -50,7 +50,7 @@ export function getDatabaseStatus(): { status: DbStatus; demoMode: boolean; last
   };
 }
 
-// ---- connection
+// connection
 
 export async function connectToDb(): Promise<Db | null> {
   if (!uri) {
@@ -87,7 +87,7 @@ export async function connectToDb(): Promise<Db | null> {
   return dbPromise;
 }
 
-// ---- in-memory fallbacks
+// in-memory fallbacks
 
 async function getDummyAssets(): Promise<Asset[]> {
   if (isDemoMode) {
@@ -96,7 +96,7 @@ async function getDummyAssets(): Promise<Asset[]> {
   return fallbackDummyAssets;
 }
 
-// ---- API methods
+// API methods
 
 export async function getAllAssets(): Promise<Asset[]> {
   const db = await connectToDb();
@@ -170,12 +170,12 @@ export async function insertAsset(data: Asset): Promise<Asset> {
   }
 }
 
-// ---- NEW: export the entire DB as JSON (programmatic helper)
+// export the entire DB as JSON
 export async function exportAllAssets(): Promise<Asset[]> {
   return getAllAssets();
 }
 
-// ---- NEW: import many assets from JSON (programmatic helper)
+// import many assets from JSON
 export async function importAssetsFromJson(assets: Asset[], overwrite = false): Promise<{
   inserted: number;
   replaced: number;

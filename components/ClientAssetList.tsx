@@ -8,13 +8,14 @@ import Navbar from './Navbar';
 import FloatingAddButton from './FloatingAddButton';
 import markdownit from 'markdown-it'
 import Cookies from 'js-cookie';
+import Fuse from 'fuse.js';
+import { useDebounce } from 'use-debounce';
 
 type Props = {
   initialAssets: Asset[];
 };
 
 export default function ClientAssetList({ initialAssets }: Props) {
-  let appName = process.env.NEXT_PUBLIC_APP_NAME;
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState(() => Cookies.get('sortOption') || 'Default');
@@ -33,26 +34,60 @@ export default function ClientAssetList({ initialAssets }: Props) {
   const [filteredAssets, setFilteredAssets] = useState(initialAssets);
   const [currentPage, setCurrentPage] = useState(1);
   const md = markdownit()
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 100);
+
+  const fuse = useMemo(() => new Fuse(initialAssets, {
+    keys: ['_id', 'Brand', 'Model', 'Description', 'Type'],
+    threshold: 0.3,
+    includeMatches: true,
+  }), [initialAssets]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, sortOption]);
 
   useEffect(() => {
-    const term = searchTerm.toLowerCase();
-    let result = initialAssets.filter(a =>
-      a._id.toLowerCase().includes(term) ||
-      a.Brand.toLowerCase().includes(term) ||
-      a.Model.toLowerCase().includes(term) ||
-      a.Description.toLowerCase().includes(term)
-    );
+    const params = new URLSearchParams(window.location.search);
+    if (searchTerm) {
+      params.set('search', searchTerm);
+    } else {
+      params.delete('search');
+    }
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlSearch = params.get('search');
+    if (urlSearch) setSearchTerm(urlSearch);
+  }, []);
+
+  useEffect(() => {
+    let result;
+
+    if (!debouncedSearchTerm.trim()) {
+      result = initialAssets;
+    } else {
+      // Split query into words
+      const terms = debouncedSearchTerm.trim().split(/\s+/);
+
+      // Search for each term and merge results
+      const searchResults = terms.map(term =>
+        fuse.search(term).map(r => r.item)
+      );
+
+      // Keep only assets that match ALL terms
+      result = searchResults.reduce((acc, arr) =>
+        acc.filter(asset => arr.includes(asset))
+      );
+    }
 
     if (showInServiceOnly) {
       result = result.filter(a => a.Status === 1);
     }
 
     setFilteredAssets(result);
-  }, [searchTerm, initialAssets, showInServiceOnly]);
+  }, [debouncedSearchTerm, initialAssets, showInServiceOnly, fuse]);
 
   useEffect(() => {
     Cookies.set('sortOption', sortOption, { expires: 365 });
@@ -174,8 +209,8 @@ export default function ClientAssetList({ initialAssets }: Props) {
     <>
       <FloatingAddButton />
       <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <main className="container">
-        <div className="row my-2 g-2">
+      <main className="container px-quarter">
+        <div className="row my-2 g-2 px-2">
           <div className="col-12 col-md d-flex align-items-center justify-content-md-start justify-content-between">
             <h1 className="display-6 fw-normal mb-0">Asset List</h1>
           </div>
@@ -273,7 +308,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
           </div>
         </div>
 
-        <div className="d-flex justify-content-between align-items-center my-2">
+        <div className="d-flex justify-content-between align-items-center my-2 px-2">
           {sortedAssets.length > 0 && (
             <p className="text-muted my-auto">
               Showing {startIndex + 1}–{endIndex} of {sortedAssets.length} item{sortedAssets.length !== 1 && 's'}
@@ -362,54 +397,54 @@ export default function ClientAssetList({ initialAssets }: Props) {
         )}
 
         {(endIndex - startIndex) > 24 && (
-        <div className="d-flex justify-content-between align-items-center my-2">
-          {sortedAssets.length > 0 && (
-            <p className="text-muted my-auto">
-              Showing {startIndex + 1}–{endIndex} of {sortedAssets.length} item{sortedAssets.length !== 1 && 's'}
-            </p>
-          )}
-          <nav>
-            <ul className="pagination mb-0">
-              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                <button
-                  className="page-link text-primary"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  aria-label="Previous"
-                >
-                  <i className="bi bi-chevron-left" />
-                </button>
-              </li>
+          <div className="d-flex justify-content-between align-items-center my-2 px-2">
+            {sortedAssets.length > 0 && (
+              <p className="text-muted my-auto">
+                Showing {startIndex + 1}–{endIndex} of {sortedAssets.length} item{sortedAssets.length !== 1 && 's'}
+              </p>
+            )}
+            <nav>
+              <ul className="pagination mb-0">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button
+                    className="page-link text-primary"
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    aria-label="Previous"
+                  >
+                    <i className="bi bi-chevron-left" />
+                  </button>
+                </li>
 
-              {getPageNumbers(currentPage, totalPages).map((page, index) =>
-                page === '...' ? (
-                  <li key={`ellipsis-${index}`} className="page-item disabled">
-                    <span className="page-link">…</span>
-                  </li>
-                ) : (
-                  <li key={page} className={`page-item ${page === currentPage ? 'active' : ''}`}>
-                    <button
-                      className="page-link"
-                      style={{ backgroundColor: page === currentPage ? '#0d6efd' : undefined, color: page === currentPage ? 'white' : undefined }}
-                      onClick={() => typeof page === 'number' && setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  </li>
-                )
-              )}
+                {getPageNumbers(currentPage, totalPages).map((page, index) =>
+                  page === '...' ? (
+                    <li key={`ellipsis-${index}`} className="page-item disabled">
+                      <span className="page-link">…</span>
+                    </li>
+                  ) : (
+                    <li key={page} className={`page-item ${page === currentPage ? 'active' : ''}`}>
+                      <button
+                        className="page-link"
+                        style={{ backgroundColor: page === currentPage ? '#0d6efd' : undefined, color: page === currentPage ? 'white' : undefined }}
+                        onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                      >
+                        {page}
+                      </button>
+                    </li>
+                  )
+                )}
 
-              <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-                <button
-                  className="page-link text-primary"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  aria-label="Next"
-                >
-                  <i className="bi bi-chevron-right" />
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div> )}
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button
+                    className="page-link text-primary"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    aria-label="Next"
+                  >
+                    <i className="bi bi-chevron-right" />
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>)}
 
       </main>
     </>

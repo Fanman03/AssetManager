@@ -125,3 +125,8 @@ body {
 .pagination {
   margin-left: 10px;
 }
+
+.px-quarter {
+  padding-left: .125rem !important;
+  padding-right: .125rem !important;
+}

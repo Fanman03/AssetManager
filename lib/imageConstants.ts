@@ -1,18 +1,23 @@
 export const TYPE_FALLBACKS: Record<string, string> = {
   laptop: '/img/fallbacks/laptop.webp',
   desktop: '/img/fallbacks/desktop.webp',
+  aio: '/img/fallbacks/allinone.webp',
   monitor: '/img/fallbacks/monitor.webp',
   wap: '/img/fallbacks/wap.webp',
   switch: '/img/fallbacks/switch.webp',
   gateway: '/img/fallbacks/gateway.webp',
+  'cable modem': '/img/fallbacks/cablemodem.webp',
   printer: '/img/fallbacks/printer.webp',
   ups: '/img/fallbacks/ups.webp',
   server: '/img/fallbacks/server.webp',
   tablet: '/img/fallbacks/tablet.webp',
   keyboard: '/img/fallbacks/keyboard.webp',
   mouse: '/img/fallbacks/mouse.webp',
-  webcam: '/img/fallbacks/camera.webp',
-  dock: '/img/fallbacks/dock.webp'
+  webcam: '/img/fallbacks/webcam.webp',
+  dock: '/img/fallbacks/dock.webp',
+  cellphone: '/img/fallbacks/cellphone.webp',
+  'ip phone': '/img/fallbacks/ipphone.webp',
+  tv: '/img/fallbacks/tv.webp'
 };
 
 export const TYPE_ALIASES: Record<string, string> = {
@@ -20,8 +25,11 @@ export const TYPE_ALIASES: Record<string, string> = {
   'wifi ap': 'wap',
   'access point': 'wap',
   'wireless access point': 'wap',
+  monitor: 'display',
   computer: 'desktop',
   pc: 'desktop',
+  'all-in-one': 'aio',
+  'all in one': 'aio',
   copier: 'printer',
   mfp: 'printer',
   scanner: 'printer',
@@ -31,7 +39,12 @@ export const TYPE_ALIASES: Record<string, string> = {
   'uninterruptible power supply': 'ups',
   battery: 'ups',
   ipad: 'tablet',
-  'docking station': 'dock'
+  'docking station': 'dock',
+  'mobile phone': 'cellphone',
+  cell: 'cellphone',
+  phone: 'cellphone',
+  'desk phone': 'ip phone',
+  television: 'tv'
 };
 
 export const GENERIC_FALLBACK = '/img/fallbacks/generic.webp';
