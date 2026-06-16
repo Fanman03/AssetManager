@@ -1,7 +1,10 @@
 import CreateAssetClientWrapper from '@/components/CreateAssetClientWrapper';
+import { getAllAssets } from '@/lib/db';
+import { getAssetPropertyOptions } from '@/lib/assetOptions';
 
-export default async function EditAssetPage(props: any) {
-  return <CreateAssetClientWrapper/>;
+export default async function CreateAssetPage() {
+  const assets = await getAllAssets();
+  return <CreateAssetClientWrapper propertyOptions={getAssetPropertyOptions(assets)} />;
 }
 
 export function generateMetadata() {

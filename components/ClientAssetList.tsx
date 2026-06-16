@@ -15,11 +15,46 @@ type Props = {
   initialAssets: Asset[];
 };
 
+type ItemsPerPage = number | 'all';
+
+const statusFilterOptions = [
+  { value: '0', label: 'Spare' },
+  { value: '1', label: 'Active' },
+  { value: '2', label: 'Retired' },
+  { value: '3', label: 'Sold' },
+  { value: '4', label: 'Lost' },
+  { value: '5', label: 'Stolen' },
+];
+
+const getInitialItemsPerPage = (): ItemsPerPage => {
+  const savedItemsPerPage = Cookies.get('itemsPerPage');
+
+  if (savedItemsPerPage === 'all') {
+    return 'all';
+  }
+
+  const parsedItemsPerPage = parseInt(savedItemsPerPage || '25', 10);
+  return [25, 50, 100].includes(parsedItemsPerPage) ? parsedItemsPerPage : 25;
+};
+
+const getAssetTextValue = (asset: Asset, field: keyof Asset) => String(asset[field] ?? '').trim();
+
+const getUniqueAssetOptions = (assets: Asset[], field: keyof Asset): string[] => {
+  const options = new Set<string>();
+
+  for (const asset of assets) {
+    const value = getAssetTextValue(asset, field);
+    if (value) options.add(value);
+  }
+
+  return [...options].sort((a, b) => a.localeCompare(b));
+};
+
 export default function ClientAssetList({ initialAssets }: Props) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState(() => Cookies.get('sortOption') || 'Default');
-  const [itemsPerPage, setItemsPerPage] = useState(() => parseInt(Cookies.get('itemsPerPage') || '25'));
+  const [itemsPerPage, setItemsPerPage] = useState<ItemsPerPage>(getInitialItemsPerPage);
   const [sortField, setSortField] = useState<keyof Asset | null>(() => {
     const sf = Cookies.get('sortField');
     return sf ? (sf as keyof Asset) : null;
@@ -28,23 +63,33 @@ export default function ClientAssetList({ initialAssets }: Props) {
     const dir = Cookies.get('sortDirection');
     return dir === 'desc' ? 'desc' : 'asc';
   });
-  const [showInServiceOnly, setShowInServiceOnly] = useState<boolean>(() => {
-    return Cookies.get('showInServiceOnly') === 'true';
+  const [statusFilter, setStatusFilter] = useState(() => {
+    return Cookies.get('statusFilter') || (Cookies.get('showInServiceOnly') === 'true' ? '1' : '');
   });
+  const [brandFilter, setBrandFilter] = useState(() => Cookies.get('brandFilter') || '');
+  const [modelFilter, setModelFilter] = useState(() => Cookies.get('modelFilter') || '');
+  const [siteFilter, setSiteFilter] = useState(() => Cookies.get('siteFilter') || '');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [filteredAssets, setFilteredAssets] = useState(initialAssets);
   const [currentPage, setCurrentPage] = useState(1);
   const md = markdownit()
   const [debouncedSearchTerm] = useDebounce(searchTerm, 100);
 
   const fuse = useMemo(() => new Fuse(initialAssets, {
-    keys: ['_id', 'Brand', 'Model', 'Description', 'Type'],
+    keys: ['_id', 'Brand', 'Model', 'Description', 'Type', 'Site'],
     threshold: 0.3,
     includeMatches: true,
   }), [initialAssets]);
 
+  const brandOptions = useMemo(() => getUniqueAssetOptions(initialAssets, 'Brand'), [initialAssets]);
+  const modelOptions = useMemo(() => getUniqueAssetOptions(initialAssets, 'Model'), [initialAssets]);
+  const siteOptions = useMemo(() => getUniqueAssetOptions(initialAssets, 'Site'), [initialAssets]);
+  const advancedFilterCount = [statusFilter, brandFilter, modelFilter, siteFilter].filter(Boolean).length;
+  const statusFilterLabel = statusFilterOptions.find(option => option.value === statusFilter)?.label || 'All';
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, sortOption]);
+  }, [searchTerm, sortOption, statusFilter, brandFilter, modelFilter, siteFilter]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -63,7 +108,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
   }, []);
 
   useEffect(() => {
-    let result;
+    let result: Asset[];
 
     if (!debouncedSearchTerm.trim()) {
       result = initialAssets;
@@ -82,12 +127,24 @@ export default function ClientAssetList({ initialAssets }: Props) {
       );
     }
 
-    if (showInServiceOnly) {
-      result = result.filter(a => a.Status === 1);
+    if (statusFilter) {
+      result = result.filter(a => a.Status === Number(statusFilter));
+    }
+
+    if (brandFilter) {
+      result = result.filter(a => getAssetTextValue(a, 'Brand') === brandFilter);
+    }
+
+    if (modelFilter) {
+      result = result.filter(a => getAssetTextValue(a, 'Model') === modelFilter);
+    }
+
+    if (siteFilter) {
+      result = result.filter(a => getAssetTextValue(a, 'Site') === siteFilter);
     }
 
     setFilteredAssets(result);
-  }, [debouncedSearchTerm, initialAssets, showInServiceOnly, fuse]);
+  }, [debouncedSearchTerm, initialAssets, statusFilter, brandFilter, modelFilter, siteFilter, fuse]);
 
   useEffect(() => {
     Cookies.set('sortOption', sortOption, { expires: 365 });
@@ -110,8 +167,38 @@ export default function ClientAssetList({ initialAssets }: Props) {
   }, [sortDirection]);
 
   useEffect(() => {
-    Cookies.set('showInServiceOnly', String(showInServiceOnly), { expires: 365 });
-  }, [showInServiceOnly]);
+    if (statusFilter) {
+      Cookies.set('statusFilter', statusFilter, { expires: 365 });
+    } else {
+      Cookies.remove('statusFilter');
+    }
+    Cookies.remove('showInServiceOnly');
+  }, [statusFilter]);
+
+  useEffect(() => {
+    if (brandFilter) {
+      Cookies.set('brandFilter', brandFilter, { expires: 365 });
+    } else {
+      Cookies.remove('brandFilter');
+    }
+  }, [brandFilter]);
+
+  useEffect(() => {
+    if (modelFilter) {
+      Cookies.set('modelFilter', modelFilter, { expires: 365 });
+    } else {
+      Cookies.remove('modelFilter');
+    }
+  }, [modelFilter]);
+
+  useEffect(() => {
+    if (siteFilter) {
+      Cookies.set('siteFilter', siteFilter, { expires: 365 });
+    } else {
+      Cookies.remove('siteFilter');
+    }
+    Cookies.remove('locationFilter');
+  }, [siteFilter]);
 
   const sortedAssets = useMemo(() => {
     const copy = [...filteredAssets];
@@ -156,9 +243,10 @@ export default function ClientAssetList({ initialAssets }: Props) {
     }
   };
 
-  const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, filteredAssets.length);
+  const effectiveItemsPerPage = itemsPerPage === 'all' ? Math.max(filteredAssets.length, 1) : itemsPerPage;
+  const totalPages = Math.ceil(filteredAssets.length / effectiveItemsPerPage);
+  const startIndex = (currentPage - 1) * effectiveItemsPerPage;
+  const endIndex = Math.min(startIndex + effectiveItemsPerPage, filteredAssets.length);
 
   const paginatedAssets = sortedAssets.slice(startIndex, endIndex);
 
@@ -256,10 +344,10 @@ export default function ClientAssetList({ initialAssets }: Props) {
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
                   >
-                    {itemsPerPage}
+                    {itemsPerPage === 'all' ? 'All' : itemsPerPage}
                   </button>
                   <ul className="dropdown-menu">
-                    {[25, 50, 100].map(n => (
+                    {([25, 50, 100, 'all'] as ItemsPerPage[]).map(n => (
                       <li key={n}>
                         <button
                           className="dropdown-item"
@@ -268,17 +356,27 @@ export default function ClientAssetList({ initialAssets }: Props) {
                             setCurrentPage(1);
                           }}
                         >
-                          {n}
+                          {n === 'all' ? 'All' : n}
                         </button>
                       </li>
                     ))}
                   </ul>
                 </div>
               </div>
+
             </div>
           </div>
-          <div className="d-flex flex-row-reverse align-items-center justify-content-md-start justify-content-around my-2">
-            <div className="ms-2">
+          <div className="d-flex flex-wrap flex-row-reverse align-items-center justify-content-md-start justify-content-around gap-2 my-2">
+            <div className="d-flex align-items-center gap-2">
+              <button
+                className={`btn ${showAdvancedFilters ? 'btn-primary' : 'btn-secondary'}`}
+                type="button"
+                aria-expanded={showAdvancedFilters}
+                aria-controls="advancedFilters"
+                onClick={() => setShowAdvancedFilters(prev => !prev)}
+              >
+                Filters{advancedFilterCount > 0 ? ` (${advancedFilterCount})` : ''}
+              </button>
               <button className="btn btn-secondary" onClick={() => {
                 Cookies.remove('searchTerm');
                 Cookies.remove('sortOption');
@@ -286,26 +384,146 @@ export default function ClientAssetList({ initialAssets }: Props) {
                 Cookies.remove('sortDirection');
                 Cookies.remove('itemsPerPage');
                 Cookies.remove('showInServiceOnly');
+                Cookies.remove('statusFilter');
+                Cookies.remove('brandFilter');
+                Cookies.remove('modelFilter');
+                Cookies.remove('locationFilter');
+                Cookies.remove('siteFilter');
                 location.reload();
               }}>Reset Filters</button>
 
             </div>
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="flexCheckInService"
-                checked={showInServiceOnly}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setShowInServiceOnly(checked);
-                }}
-              />
-              <label className="form-check-label" htmlFor="flexCheckInService">
-                Show active items only
-              </label>
-            </div>
           </div>
+          <div
+            id="advancedFilters"
+            className={`col-12 ${showAdvancedFilters ? 'overflow-visible' : 'overflow-hidden'}`}
+            aria-hidden={!showAdvancedFilters}
+            style={{
+              maxHeight: showAdvancedFilters ? '32rem' : '0',
+              opacity: showAdvancedFilters ? 1 : 0,
+              transition: 'max-height 220ms ease, opacity 180ms ease',
+            }}
+          >
+              <div
+                className="border rounded p-3"
+                style={{ backgroundColor: 'var(--bs-table-striped-bg, rgba(var(--bs-emphasis-color-rgb), 0.05))' }}
+              >
+                <div className="row g-3">
+                  <div className="col-12 col-md-3">
+                    <label htmlFor="statusFilter" className="form-label">Status</label>
+                    <div className="dropdown">
+                      <button
+                        className="btn btn-primary dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start"
+                        id="statusFilter"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        {statusFilterLabel}
+                      </button>
+                      <ul className="dropdown-menu w-100">
+                        <li>
+                          <button className="dropdown-item" type="button" onClick={() => setStatusFilter('')}>
+                            All
+                          </button>
+                        </li>
+                        {statusFilterOptions.map(option => (
+                          <li key={option.value}>
+                            <button className="dropdown-item" type="button" onClick={() => setStatusFilter(option.value)}>
+                              {option.label}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="col-12 col-md-3">
+                    <label htmlFor="brandFilter" className="form-label">Brand</label>
+                    <div className="dropdown">
+                      <button
+                        className="btn btn-primary dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start"
+                        id="brandFilter"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        {brandFilter || 'All'}
+                      </button>
+                      <ul className="dropdown-menu w-100">
+                        <li>
+                          <button className="dropdown-item" type="button" onClick={() => setBrandFilter('')}>
+                            All
+                          </button>
+                        </li>
+                        {brandOptions.map(brand => (
+                          <li key={brand}>
+                            <button className="dropdown-item" type="button" onClick={() => setBrandFilter(brand)}>
+                              {brand}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="col-12 col-md-3">
+                    <label htmlFor="modelFilter" className="form-label">Model</label>
+                    <div className="dropdown">
+                      <button
+                        className="btn btn-primary dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start"
+                        id="modelFilter"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        {modelFilter || 'All'}
+                      </button>
+                      <ul className="dropdown-menu w-100">
+                        <li>
+                          <button className="dropdown-item" type="button" onClick={() => setModelFilter('')}>
+                            All
+                          </button>
+                        </li>
+                        {modelOptions.map(model => (
+                          <li key={model}>
+                            <button className="dropdown-item" type="button" onClick={() => setModelFilter(model)}>
+                              {model}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="col-12 col-md-3">
+                    <label htmlFor="siteFilter" className="form-label">Site</label>
+                    <div className="dropdown">
+                      <button
+                        className="btn btn-primary dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start"
+                        id="siteFilter"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        {siteFilter || 'All'}
+                      </button>
+                      <ul className="dropdown-menu w-100">
+                        <li>
+                          <button className="dropdown-item" type="button" onClick={() => setSiteFilter('')}>
+                            All
+                          </button>
+                        </li>
+                        {siteOptions.map(site => (
+                          <li key={site}>
+                            <button className="dropdown-item" type="button" onClick={() => setSiteFilter(site)}>
+                              {site}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
         </div>
 
         <div className="d-flex justify-content-between align-items-center my-2 px-2">
@@ -371,6 +589,9 @@ export default function ClientAssetList({ initialAssets }: Props) {
                   <th role="button" onClick={() => handleColumnSort('Model')}>
                     Model {sortField === 'Model' && (sortDirection === 'asc' ? '▲' : '▼')}
                   </th>
+                  <th role="button" onClick={() => handleColumnSort('Site')}>
+                    Site {sortField === 'Site' && (sortDirection === 'asc' ? '▲' : '▼')}
+                  </th>
                   <th role="button" onClick={() => handleColumnSort('Description')}>
                     Description {sortField === 'Description' && (sortDirection === 'asc' ? '▲' : '▼')}
                   </th>
@@ -386,6 +607,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
                     </td>
                     <td>{asset.Brand}</td>
                     <td>{asset.Model}</td>
+                    <td>{asset.Site}</td>
                     <td dangerouslySetInnerHTML={{ __html: md.renderInline(asset.Description) }} />
                   </tr>
                 ))}

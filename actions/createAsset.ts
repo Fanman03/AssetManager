@@ -11,6 +11,7 @@ interface CreateAssetData {
     Description?: string;
     Purchase_Date?: number | null;
     Type?: string;
+    Site?: string;
     [key: string]: any;
 }
 

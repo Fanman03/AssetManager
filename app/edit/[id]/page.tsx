@@ -1,4 +1,5 @@
-import { getAssetById } from '@/lib/db';
+import { getAllAssets, getAssetById } from '@/lib/db';
+import { getAssetPropertyOptions } from '@/lib/assetOptions';
 import EditAssetClientWrapper from '@/components/EditAssetClientWrapper';
 
 export default async function EditAssetPage(props: any) {
@@ -6,7 +7,8 @@ export default async function EditAssetPage(props: any) {
   const asset = await getAssetById(params.id);
   if (!asset) return <p className="m-4">Asset not found.</p>;
 
-  return <EditAssetClientWrapper asset={asset} />;
+  const assets = await getAllAssets();
+  return <EditAssetClientWrapper asset={asset} propertyOptions={getAssetPropertyOptions(assets)} />;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {

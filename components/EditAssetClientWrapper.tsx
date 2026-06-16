@@ -3,11 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import EditAssetForm from './EditAssetForm';
-import type { Asset } from '@/types/asset';
+import type { Asset, AssetPropertyOptions } from '@/types/asset';
 import Navbar from './Navbar';
 import LoadingSpinner from './LoadingSpinner';
 
-export default function EditAssetClientWrapper({ asset }: { asset: Asset }) {
+export default function EditAssetClientWrapper({
+  asset,
+  propertyOptions,
+}: {
+  asset: Asset;
+  propertyOptions: AssetPropertyOptions;
+}) {
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -52,7 +58,7 @@ export default function EditAssetClientWrapper({ asset }: { asset: Asset }) {
     <>
       <Navbar variant="backBtn" />
       <main className="container pb-4">
-        <EditAssetForm asset={asset} />
+        <EditAssetForm asset={asset} propertyOptions={propertyOptions} />
       </main>
     </>
   );

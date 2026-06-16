@@ -8,7 +8,7 @@
         "Type": "Desktop",
         "Image": "Dell/OptiPlex-5060M",
         "Description": "Test Asset 1",
-        "Location": "Missouri Office",
+        "Site": "Missouri Office",
         "Serial_Number": "DB2R0T2",
         "CPU": "Intel Core i5-8500T",
         "RAM": "16GB DDR4-2666 (2/2)",
@@ -23,7 +23,7 @@
         "Type": "Desktop",
         "Image": "Dell/OptiPlex-5060M",
         "Description": "Test Asset 2",
-        "Location": "Missouri Office",
+        "Site": "Missouri Office",
         "Serial_Number": "DB2R0T2",
         "CPU": "Intel Core i5-8500T",
         "RAM": "16GB DDR4-2666 (2/2)",
@@ -40,7 +40,7 @@
         "Type": "Monitor",
         "Image": "Dell/P2419h",
         "Description": "Test Asset 3",
-        "Location": "Missouri Office",
+        "Site": "Missouri Office",
         "Serial_Number": "8D42P33",
         "Resolution": "1920x1080",
         "Panel_Technology": "IPS"
@@ -54,7 +54,7 @@
         "Type": "Monitor",
         "Image": "Dell/P2419h",
         "Description": "Test Asset 4",
-        "Location": "Missouri Office",
+        "Site": "Missouri Office",
         "Serial_Number": "1G07JD2",
         "Resolution": "1920x1080",
         "Panel_Technology": "IPS"
@@ -68,7 +68,8 @@
         "Type": "WiFi AP",
         "Image": "Ubiquiti/U6Enterprise",
         "Description": "Test Asset 7",
-        "Location": "Missouri Office West Hallway",
+        "Site": "Missouri Office",
+        "Location": "West Hallway",
         "MAC_ID": "AA:BB:CC:DD:EE:FF",
         "Serial_Number": "000000000"
     },
@@ -81,7 +82,8 @@
         "Type": "WiFi AP",
         "Image": "Ubiquiti/U6Pro",
         "Description": "Test Asset 6",
-        "Location": "Missouri Office West Hallway",
+        "Site": "Missouri Office",
+        "Location": "West Hallway",
         "MAC_ID": "AA:BB:CC:DD:EE:FF",
         "Serial_Number": "000000000",
         "Sale_Date": "January 1, 2023"
@@ -95,7 +97,7 @@
         "Type": "WiFi AP",
         "Image": "Ubiquiti/U6Pro",
         "Description": "Test Asset 5",
-        "Location": "Missouri Office West Hallway",
+        "Site": "Missouri Office",
         "MAC_ID": "AA:BB:CC:DD:EE:FF",
         "Serial_Number": "000000000",
         "Sale_Date": "January 1, 2023"
@@ -108,7 +110,7 @@
         "Model": "Latitude 9420",
         "Type": "Laptop",
         "Description": "Test Asset 8",
-        "Location": "Missouri Office",
+        "Site": "Missouri Office",
         "Serial_Number": "CYB66M3",
         "CPU": "Intel Core i7-1185G7",
         "RAM": "32GB LPDDR4X-4267 (0/0)"

@@ -3,12 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createAsset } from '@/actions/createAsset'; // server action
+import type { AssetPropertyOptions } from '@/types/asset';
+import PropertyAutocompleteInput from './PropertyAutocompleteInput';
 
 interface Props {
     defaultId: string;
+    propertyOptions: AssetPropertyOptions;
 }
 
-export default function CreateAssetForm({ defaultId }: Props) {
+export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
     const router = useRouter();
 
     const [formData, setFormData] = useState({
@@ -19,6 +22,7 @@ export default function CreateAssetForm({ defaultId }: Props) {
         Description: '',
         Purchase_Date: '',
         Type: '',
+        Site: '',
     });
 
     // For extra (arbitrary) properties
@@ -44,6 +48,13 @@ export default function CreateAssetForm({ defaultId }: Props) {
         setFormData((prev) => ({
             ...prev,
             [name]: name === 'Status' ? Number(value) : value,
+        }));
+    }
+
+    function setFormValue(name: keyof typeof formData, value: string) {
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
         }));
     }
 
@@ -89,25 +100,23 @@ export default function CreateAssetForm({ defaultId }: Props) {
 
                 <div className="mb-3">
                     <label htmlFor="Brand" className="form-label">Brand</label>
-                    <input
+                    <PropertyAutocompleteInput
                         id="Brand"
                         name="Brand"
-                        type="text"
-                        className="form-control"
                         value={formData.Brand}
-                        onChange={onChange}
+                        options={propertyOptions.Brand}
+                        onValueChange={(value) => setFormValue('Brand', value)}
                     />
                 </div>
 
                 <div className="mb-3">
                     <label htmlFor="Model" className="form-label">Model</label>
-                    <input
+                    <PropertyAutocompleteInput
                         id="Model"
                         name="Model"
-                        type="text"
-                        className="form-control"
                         value={formData.Model}
-                        onChange={onChange}
+                        options={propertyOptions.Model}
+                        onValueChange={(value) => setFormValue('Model', value)}
                     />
                 </div>
 
@@ -154,13 +163,23 @@ export default function CreateAssetForm({ defaultId }: Props) {
 
                 <div className="mb-3">
                     <label htmlFor="Type" className="form-label">Type</label>
-                    <input
+                    <PropertyAutocompleteInput
                         id="Type"
                         name="Type"
-                        type="text"
-                        className="form-control"
                         value={formData.Type}
-                        onChange={onChange}
+                        options={propertyOptions.Type}
+                        onValueChange={(value) => setFormValue('Type', value)}
+                    />
+                </div>
+
+                <div className="mb-3">
+                    <label htmlFor="Site" className="form-label">Site</label>
+                    <PropertyAutocompleteInput
+                        id="Site"
+                        name="Site"
+                        value={formData.Site}
+                        options={propertyOptions.Site}
+                        onValueChange={(value) => setFormValue('Site', value)}
                     />
                 </div>
 

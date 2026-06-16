@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import CreateAssetForm from '@/components/CreateAssetForm';
 import Navbar from '@/components/Navbar';
 import LoadingSpinner from './LoadingSpinner';
+import type { AssetPropertyOptions } from '@/types/asset';
 
-export default function EditAssetClientWrapper() {
+export default function EditAssetClientWrapper({ propertyOptions }: { propertyOptions: AssetPropertyOptions }) {
     const router = useRouter();
     const [authorized, setAuthorized] = useState<boolean | null>(null);
     const [nextId, setNextId] = useState<string>('1'); // default to 1
@@ -53,7 +54,7 @@ export default function EditAssetClientWrapper() {
     return (
         <>
             <Navbar variant='backBtn' />
-            <CreateAssetForm defaultId={nextId} />
+            <CreateAssetForm defaultId={nextId} propertyOptions={propertyOptions} />
         </>
     )
 }

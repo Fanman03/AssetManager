@@ -2,21 +2,25 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Asset } from '@/types/asset';
+import type { Asset, AssetPropertyOptions } from '@/types/asset';
+import PropertyAutocompleteInput from './PropertyAutocompleteInput';
 
 import { updateAsset } from '@/actions/updateAsset'; // Your server action
 
 interface EditAssetFormProps {
     asset: Asset;
+    propertyOptions: AssetPropertyOptions;
 }
 
-export default function EditAssetForm({ asset }: EditAssetFormProps) {
+export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormProps) {
     const router = useRouter();
 
     // Known fields state
     const [formData, setFormData] = useState({
         Brand: asset.Brand || '',
         Model: asset.Model || '',
+        Type: asset.Type || '',
+        Site: asset.Site || '',
         Status: asset.Status ?? 1,
         Description: asset.Description || '',
         Purchase_Date: asset.Purchase_Date
@@ -34,6 +38,8 @@ export default function EditAssetForm({ asset }: EditAssetFormProps) {
                         '_id',
                         'Brand',
                         'Model',
+                        'Type',
+                        'Site',
                         'Status',
                         'Description',
                         'Purchase_Date',
@@ -57,6 +63,13 @@ export default function EditAssetForm({ asset }: EditAssetFormProps) {
         setFormData((prev) => ({
             ...prev,
             [name]: name === 'Status' ? Number(value) : value,
+        }));
+    }
+
+    function setFormValue(name: keyof typeof formData, value: string) {
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
         }));
     }
 
@@ -101,6 +114,8 @@ export default function EditAssetForm({ asset }: EditAssetFormProps) {
                         '_id',
                         'Brand',
                         'Model',
+                        'Type',
+                        'Site',
                         'Status',
                         'Description',
                         'Purchase_Date',
@@ -126,13 +141,12 @@ export default function EditAssetForm({ asset }: EditAssetFormProps) {
                     <label htmlFor="Brand" className="form-label">
                         Brand
                     </label>
-                    <input
+                    <PropertyAutocompleteInput
                         id="Brand"
                         name="Brand"
-                        type="text"
-                        className="form-control"
                         value={formData.Brand}
-                        onChange={onChange}
+                        options={propertyOptions.Brand}
+                        onValueChange={(value) => setFormValue('Brand', value)}
                     />
                 </div>
 
@@ -141,13 +155,40 @@ export default function EditAssetForm({ asset }: EditAssetFormProps) {
                     <label htmlFor="Model" className="form-label">
                         Model
                     </label>
-                    <input
+                    <PropertyAutocompleteInput
                         id="Model"
                         name="Model"
-                        type="text"
-                        className="form-control"
                         value={formData.Model}
-                        onChange={onChange}
+                        options={propertyOptions.Model}
+                        onValueChange={(value) => setFormValue('Model', value)}
+                    />
+                </div>
+
+                {/* Type */}
+                <div className="mb-3">
+                    <label htmlFor="Type" className="form-label">
+                        Type
+                    </label>
+                    <PropertyAutocompleteInput
+                        id="Type"
+                        name="Type"
+                        value={formData.Type}
+                        options={propertyOptions.Type}
+                        onValueChange={(value) => setFormValue('Type', value)}
+                    />
+                </div>
+
+                {/* Site */}
+                <div className="mb-3">
+                    <label htmlFor="Site" className="form-label">
+                        Site
+                    </label>
+                    <PropertyAutocompleteInput
+                        id="Site"
+                        name="Site"
+                        value={formData.Site}
+                        options={propertyOptions.Site}
+                        onValueChange={(value) => setFormValue('Site', value)}
                     />
                 </div>
 
