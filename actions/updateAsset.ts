@@ -19,19 +19,26 @@ export async function updateAsset(
     await client.connect();
     const db = client.db('asset-db');
 
-    const updateOps: any = {
-        $set: data,
-    };
+    const assets = db.collection<Asset>('assets');
+    const existingAsset = await assets.findOne({ _id: id });
 
-    if (removedKeys.length > 0) {
-        updateOps.$unset = Object.fromEntries(removedKeys.map((key) => [key, ""]));
+    if (!existingAsset) {
+        throw new Error('No asset updated');
     }
 
-    const assets = db.collection<Asset>('assets');
+    const replacement: Asset = {
+        ...existingAsset,
+        ...data,
+        _id: id,
+    };
 
-    const result = await assets.updateOne({ _id: id }, updateOps);
+    for (const key of removedKeys) {
+        delete replacement[key];
+    }
 
-    if (result.modifiedCount === 0) {
+    const result = await assets.replaceOne({ _id: id }, replacement);
+
+    if (result.matchedCount === 0) {
         throw new Error('No asset updated');
     }
 }

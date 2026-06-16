@@ -131,8 +131,10 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                       return <a href={`/${targetId}`}>{targetId}</a>;
                     }
 
+                    // Special formatting helpers
                     const keyLower = key.toLowerCase();
-                    const isSerialKey = keyLower === 'serial' || keyLower === 'serial_number' || keyLower === 'serial number' || keyLower === 'service_tag';
+                    const isSerialKey = keyLower === 'serial' || keyLower === 'serial_number' || keyLower === 'serial number' || keyLower === 'service_tag' || keyLower === 's/n' || keyLower === 's/t' || keyLower === 'sn' || keyLower === 'st';
+                    const isMacId = keyLower === 'mac' || keyLower === 'mac id' || keyLower === 'mac address' || keyLower === 'mac addr' || keyLower === 'hfc mac'
 
                     // Special Dell support link for Serial/Serial_Number/Service_Tag
                     if (Brand?.toLowerCase() === 'dell' && isSerialKey && strVal) {
@@ -146,6 +148,11 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                       return <a href={hpUrl} target="_blank" rel="noopener noreferrer">{strVal}</a>;
                     }
 
+                    // Make MAC IDs uppercase
+                    if (isMacId) {
+                      return strVal.toUpperCase();
+                    }
+                    
                     // Default rendering
                     return strVal;
                   })()}
