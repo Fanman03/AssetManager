@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ COPY . .
 
 RUN npm run build
 
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 ENV NODE_ENV=production
 
 WORKDIR /app
@@ -22,5 +22,6 @@ COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/package.json ./package.json
 
 EXPOSE 3000
+EXPOSE 3002
 
 CMD ["npm", "start"]
