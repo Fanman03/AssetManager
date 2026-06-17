@@ -263,6 +263,20 @@ export default function ClientAssetList({ initialAssets }: Props) {
     }
   };
 
+  const handleAssetRowClick = (
+    event: React.MouseEvent<HTMLTableRowElement>,
+    assetId: string
+  ) => {
+    const href = `/${assetId}`;
+
+    if (event.button === 1 || event.ctrlKey || event.metaKey) {
+      window.open(href, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    router.push(href);
+  };
+
   const effectiveItemsPerPage = itemsPerPage === 'all' ? Math.max(filteredAssets.length, 1) : itemsPerPage;
   const totalPages = Math.ceil(filteredAssets.length / effectiveItemsPerPage);
   const startIndex = (currentPage - 1) * effectiveItemsPerPage;
@@ -649,7 +663,12 @@ export default function ClientAssetList({ initialAssets }: Props) {
 
               <tbody>
                 {paginatedAssets.map(asset => (
-                  <tr key={asset._id} className="assetRow" onClick={() => router.push(`/${asset._id}`)}>
+                  <tr
+                    key={asset._id}
+                    className="assetRow"
+                    onClick={(event) => handleAssetRowClick(event, asset._id)}
+                    onAuxClick={(event) => handleAssetRowClick(event, asset._id)}
+                  >
                     <td className="statusContainer">{statusIcon(asset.Status)}</td>
                     <td>
                       <Link href={`/${asset._id}`}>{asset._id}</Link>
