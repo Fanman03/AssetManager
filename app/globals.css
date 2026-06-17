@@ -184,6 +184,11 @@ body {
   color: var(--bs-body-color);
 }
 
+.asset-form .form-select option {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}
+
 .asset-image-picker-preview {
   align-items: center;
   aspect-ratio: 4 / 3;

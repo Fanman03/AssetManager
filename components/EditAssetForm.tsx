@@ -305,6 +305,7 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
                         <option value={3}>Sold</option>
                         <option value={4}>Lost</option>
                         <option value={5}>Stolen</option>
+                        <option value={6}>Broken</option>
                     </select>
                 </div>
 

@@ -25,6 +25,7 @@ const statusFilterOptions = [
   { value: '3', label: 'Sold' },
   { value: '4', label: 'Lost' },
   { value: '5', label: 'Stolen' },
+  { value: '6', label: 'Broken' },
 ];
 
 const getInitialItemsPerPage = (): ItemsPerPage => {
@@ -308,6 +309,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
       3: { icon: 'currency-exchange', className: 'text-warning', label: 'Sold' },
       4: { icon: 'question-circle-fill', className: 'text-danger', label: 'Lost' },
       5: { icon: 'exclamation-circle-fill', className: 'text-danger', label: 'Stolen' },
+      6: { icon: 'tools', className: 'text-danger', label: 'Broken' },
     };
 
     const data = map[status ?? -1] || {

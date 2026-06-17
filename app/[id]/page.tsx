@@ -12,6 +12,7 @@ const StatusMap: Record<number, { icon: string; className: string; label: string
   3: { icon: 'currency-exchange', className: 'text-warning', label: 'Sold' },
   4: { icon: 'question-circle-fill', className: 'text-danger', label: 'Lost' },
   5: { icon: 'exclamation-circle-fill', className: 'text-danger', label: 'Stolen' },
+  6: { icon: 'tools', className: 'text-danger', label: 'Broken' },
 };
 
 const statusIcon = (status?: number) => {

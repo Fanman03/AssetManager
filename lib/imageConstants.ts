@@ -26,7 +26,7 @@ export const TYPE_ALIASES: Record<string, string> = {
   'access point': 'wap',
   'wireless access point': 'wap',
   'wireless ap': 'wap',
-  monitor: 'display',
+  display: 'monitor',
   computer: 'desktop',
   pc: 'desktop',
   'all-in-one': 'aio',
