@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { clearUnsavedChanges, confirmUnsavedNavigationWithDialog, setUnsavedChanges } from '@/lib/unsavedChanges';
 import type { Asset, AssetPropertyOptions } from '@/types/asset';
+import { useAppDialog } from './AppDialog';
+import AssetImagePicker from './AssetImagePicker';
 import PropertyAutocompleteInput from './PropertyAutocompleteInput';
 
 import { updateAsset } from '@/actions/updateAsset'; // Your server action
@@ -14,9 +17,11 @@ interface EditAssetFormProps {
 
 export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormProps) {
     const router = useRouter();
+    const isNavigatingAfterSave = useRef(false);
+    const { dialogElement, showConfirm } = useAppDialog();
 
     // Known fields state
-    const [formData, setFormData] = useState({
+    const initialFormData = useMemo(() => ({
         Brand: asset.Brand || '',
         Model: asset.Model || '',
         Type: asset.Type || '',
@@ -27,11 +32,13 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
             ? new Date(asset.Purchase_Date * 1000).toISOString().slice(0, 10)
             : '',
         Image: asset.Image || '',
-    });
+    }), [asset]);
+
+    const [formData, setFormData] = useState(initialFormData);
 
     // Arbitrary extra props state
-    const [extraProps, setExtraProps] = useState<Record<string, any>>(
-        Object.fromEntries(
+    const initialExtraProps = useMemo(
+        () => Object.fromEntries(
             Object.entries(asset).filter(
                 ([key]) =>
                     ![
@@ -46,8 +53,11 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
                         'Image',
                     ].includes(key)
             )
-        )
+        ),
+        [asset]
     );
+
+    const [extraProps, setExtraProps] = useState<Record<string, any>>(initialExtraProps);
 
     // New property inputs state
     const [newPropKey, setNewPropKey] = useState('');
@@ -55,6 +65,88 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const isDirty = useMemo(
+        () =>
+            JSON.stringify(formData) !== JSON.stringify(initialFormData) ||
+            JSON.stringify(extraProps) !== JSON.stringify(initialExtraProps) ||
+            newPropKey.trim() !== '' ||
+            newPropValue !== '',
+        [extraProps, formData, initialExtraProps, initialFormData, newPropKey, newPropValue]
+    );
+
+    useEffect(() => {
+        setUnsavedChanges(isDirty && !isNavigatingAfterSave.current);
+
+        return () => {
+            clearUnsavedChanges();
+        };
+    }, [isDirty]);
+
+    useEffect(() => {
+        if (!isDirty || isNavigatingAfterSave.current) return;
+
+        const message = 'You have unsaved changes. Leave this page?';
+        const currentUrl = window.location.href;
+
+        function handleBeforeUnload(event: BeforeUnloadEvent) {
+            if (isNavigatingAfterSave.current) return;
+
+            event.preventDefault();
+            event.returnValue = message;
+        }
+
+        async function handleDocumentClick(event: MouseEvent) {
+            if (
+                event.defaultPrevented ||
+                event.button !== 0 ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey
+            ) {
+                return;
+            }
+
+            const target = event.target as Element | null;
+            const link = target?.closest('a[href]') as HTMLAnchorElement | null;
+            if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+                return;
+            }
+
+            const destination = new URL(link.href, window.location.href);
+            if (destination.href === window.location.href) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (await confirmUnsavedNavigationWithDialog(showConfirm)) {
+                isNavigatingAfterSave.current = true;
+                window.location.href = destination.href;
+            }
+        }
+
+        async function handlePopState() {
+            if (!(await confirmUnsavedNavigationWithDialog(showConfirm))) {
+                window.history.pushState(null, '', currentUrl);
+            } else {
+                isNavigatingAfterSave.current = true;
+            }
+        }
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        window.addEventListener('popstate', handlePopState);
+        document.addEventListener('click', handleDocumentClick, true);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('popstate', handlePopState);
+            document.removeEventListener('click', handleDocumentClick, true);
+        };
+    }, [isDirty, showConfirm]);
 
     function onChange(
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -125,6 +217,8 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
             );
 
             await updateAsset(asset._id, fullUpdate, removedKeys);
+            isNavigatingAfterSave.current = true;
+            clearUnsavedChanges();
             router.push(`/${asset._id}`);
         } catch (err: any) {
             setError(err.message || 'Failed to update asset');
@@ -134,8 +228,9 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
 
     return (
         <div className="container mt-3">
+            {dialogElement}
             <h1 className="assetTitle display-6 fw-normal">Edit asset:<span className="assetSeperator">-</span><span className="editAssetTag">{asset._id}</span></h1>
-            <form onSubmit={handleSubmit} className="mt-4">
+            <form onSubmit={handleSubmit} className="asset-form mt-4">
                 {/* Brand */}
                 <div className="mb-3">
                     <label htmlFor="Brand" className="form-label">
@@ -244,16 +339,9 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
 
                 {/* Image */}
                 <div className="mb-3">
-                    <label htmlFor="Image" className="form-label">
-                        Image Path
-                    </label>
-                    <input
-                        id="Image"
-                        name="Image"
-                        type="text"
-                        className="form-control"
+                    <AssetImagePicker
                         value={formData.Image}
-                        onChange={onChange}
+                        onChange={(value) => setFormValue('Image', value)}
                     />
                 </div>
 
@@ -323,7 +411,14 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
                 {error && <div className="alert alert-danger">{error}</div>}
 
                 <button type="submit" className="btn btn-primary" disabled={loading}>
-                    {loading ? 'Saving...' : 'Save Changes'}
+                    {loading ? (
+                        'Saving...'
+                    ) : (
+                        <>
+                            <i className="bi bi-floppy me-2"></i>
+                            Save Changes
+                        </>
+                    )}
                 </button>
             </form>
         </div>

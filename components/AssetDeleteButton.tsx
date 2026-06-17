@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useAppDialog } from './AppDialog';
 
 export default function AssetDeleteButton({ assetId }: { assetId: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const [authorized, setAuthorized] = useState(false);
+  const { dialogElement, showAlert, showConfirm } = useAppDialog();
 
   // Check auth on mount
   useEffect(() => {
@@ -15,33 +17,53 @@ export default function AssetDeleteButton({ assetId }: { assetId: string }) {
       .catch(() => setAuthorized(false));
   }, []);
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = async () => {
     if (!authorized) {
       // Redirect to login with returnTo query parameter
       router.push(`/login?returnTo=${encodeURIComponent(pathname)}`);
       return;
     }
 
-    if (!window.confirm('Are you sure you want to DELETE this asset? This action cannot be undone.')) {
+    const confirmed = await showConfirm({
+      title: 'Delete Asset',
+      message: 'Are you sure you want to delete this asset? This action cannot be undone.',
+      confirmLabel: 'Delete Asset',
+      variant: 'danger',
+    });
+
+    if (!confirmed) {
       return;
     }
 
-    fetch(`/api/delete-asset/${assetId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Delete failed');
-        alert('Asset deleted successfully');
-        router.push('/');
-      })
-      .catch((err) => alert(err.message || err));
+    try {
+      const res = await fetch(`/api/delete-asset/${assetId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!res.ok) throw new Error('Delete failed');
+      await showAlert({
+        title: 'Asset Deleted',
+        message: 'Asset deleted successfully.',
+        variant: 'success',
+      });
+      router.push('/');
+    } catch (err: any) {
+      await showAlert({
+        title: 'Delete Failed',
+        message: err.message || err,
+        variant: 'danger',
+      });
+    }
   };
 
   return (
-    <button className="btn btn-danger m-2 assetControlBtn" onClick={handleDeleteClick}>
-      <i className="bi bi-trash me-2" />
-      Delete Asset
-    </button>
+    <>
+      <button className="btn btn-danger m-2 assetControlBtn" onClick={handleDeleteClick}>
+        <i className="bi bi-trash me-2" />
+        Delete Asset
+      </button>
+      {dialogElement}
+    </>
   );
 }

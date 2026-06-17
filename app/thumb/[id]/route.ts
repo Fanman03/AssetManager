@@ -1,4 +1,5 @@
 import { getAssetById } from '@/lib/db';
+import { getAssetImageRawUrl } from '@/lib/assetImages';
 import { TYPE_FALLBACKS, TYPE_ALIASES, GENERIC_FALLBACK } from '@/lib/imageConstants';
 import { NextResponse } from 'next/server';
 
@@ -25,9 +26,7 @@ export async function GET(
 
   if (typeof Image === 'string') {
     const safeImage = Image.replace(/\\/g, '/');
-    candidates.push(
-      `https://raw.githubusercontent.com/Fanman03/asset-images/master/${safeImage}.png`
-    );
+    candidates.push(getAssetImageRawUrl(safeImage));
   }
 
   if (Type) {

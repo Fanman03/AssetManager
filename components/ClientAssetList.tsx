@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Asset } from '@/types/asset';
@@ -16,6 +16,7 @@ type Props = {
 };
 
 type ItemsPerPage = number | 'all';
+type AdvancedFilterMenu = 'status' | 'brand' | 'model' | 'site';
 
 const statusFilterOptions = [
   { value: '0', label: 'Spare' },
@@ -52,6 +53,7 @@ const getUniqueAssetOptions = (assets: Asset[], field: keyof Asset): string[] =>
 
 export default function ClientAssetList({ initialAssets }: Props) {
   const router = useRouter();
+  const advancedFiltersRef = useRef<HTMLDivElement | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState(() => Cookies.get('sortOption') || 'Default');
   const [itemsPerPage, setItemsPerPage] = useState<ItemsPerPage>(getInitialItemsPerPage);
@@ -70,6 +72,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
   const [modelFilter, setModelFilter] = useState(() => Cookies.get('modelFilter') || '');
   const [siteFilter, setSiteFilter] = useState(() => Cookies.get('siteFilter') || '');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [openFilterMenu, setOpenFilterMenu] = useState<AdvancedFilterMenu | null>(null);
   const [filteredAssets, setFilteredAssets] = useState(initialAssets);
   const [currentPage, setCurrentPage] = useState(1);
   const md = markdownit()
@@ -90,6 +93,23 @@ export default function ClientAssetList({ initialAssets }: Props) {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, sortOption, statusFilter, brandFilter, modelFilter, siteFilter]);
+
+  useEffect(() => {
+    if (!openFilterMenu) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node | null;
+      if (target && advancedFiltersRef.current?.contains(target)) return;
+
+      setOpenFilterMenu(null);
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [openFilterMenu]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -292,6 +312,10 @@ export default function ClientAssetList({ initialAssets }: Props) {
     );
   };
 
+  const toggleFilterMenu = (menu: AdvancedFilterMenu) => {
+    setOpenFilterMenu((current) => (current === menu ? null : menu));
+  };
+
 
   return (
     <>
@@ -305,7 +329,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
           <div className="col-12 col-md-auto">
             <div className="d-flex flex-column flex-md-row align-items-md-center gap-2 dropdown-control-row">
               {/* Sort Dropdown */}
-              <div className="d-flex align-items-center">
+              <div className="d-flex align-items-center list-control-item">
                 <label htmlFor="sortDropdown" className="form-label me-2 mb-0">Sort:</label>
                 <div className="dropdown">
                   <button
@@ -334,7 +358,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
               </div>
 
               {/* Items per Page Dropdown */}
-              <div className="d-flex align-items-center">
+              <div className="d-flex align-items-center list-control-item">
                 <label htmlFor="perPageSelect" className="form-label me-2 mb-0">Items per page:</label>
                 <div className="dropdown">
                   <button
@@ -366,33 +390,33 @@ export default function ClientAssetList({ initialAssets }: Props) {
 
             </div>
           </div>
-          <div className="d-flex flex-wrap flex-row-reverse align-items-center justify-content-md-start justify-content-around gap-2 my-2">
-            <div className="d-flex align-items-center gap-2">
-              <button
-                className={`btn ${showAdvancedFilters ? 'btn-primary' : 'btn-secondary'}`}
-                type="button"
-                aria-expanded={showAdvancedFilters}
-                aria-controls="advancedFilters"
-                onClick={() => setShowAdvancedFilters(prev => !prev)}
-              >
-                Filters{advancedFilterCount > 0 ? ` (${advancedFilterCount})` : ''}
-              </button>
-              <button className="btn btn-secondary" onClick={() => {
-                Cookies.remove('searchTerm');
-                Cookies.remove('sortOption');
-                Cookies.remove('sortField');
-                Cookies.remove('sortDirection');
-                Cookies.remove('itemsPerPage');
-                Cookies.remove('showInServiceOnly');
-                Cookies.remove('statusFilter');
-                Cookies.remove('brandFilter');
-                Cookies.remove('modelFilter');
-                Cookies.remove('locationFilter');
-                Cookies.remove('siteFilter');
-                location.reload();
-              }}>Reset Filters</button>
-
-            </div>
+          <div className="col-12 d-flex align-items-center justify-content-md-end gap-2 my-2 filter-control-row">
+            <button
+              className={`btn ${showAdvancedFilters ? 'btn-primary' : 'btn-secondary'}`}
+              type="button"
+              aria-expanded={showAdvancedFilters}
+              aria-controls="advancedFilters"
+              onClick={() => {
+                setShowAdvancedFilters(prev => !prev);
+                setOpenFilterMenu(null);
+              }}
+            >
+              Filters{advancedFilterCount > 0 ? ` (${advancedFilterCount})` : ''}
+            </button>
+            <button className="btn btn-secondary" onClick={() => {
+              Cookies.remove('searchTerm');
+              Cookies.remove('sortOption');
+              Cookies.remove('sortField');
+              Cookies.remove('sortDirection');
+              Cookies.remove('itemsPerPage');
+              Cookies.remove('showInServiceOnly');
+              Cookies.remove('statusFilter');
+              Cookies.remove('brandFilter');
+              Cookies.remove('modelFilter');
+              Cookies.remove('locationFilter');
+              Cookies.remove('siteFilter');
+              location.reload();
+            }}>Reset Filters</button>
           </div>
           <div
             id="advancedFilters"
@@ -405,6 +429,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
             }}
           >
               <div
+                ref={advancedFiltersRef}
                 className="border rounded p-3"
                 style={{ backgroundColor: 'var(--bs-table-striped-bg, rgba(var(--bs-emphasis-color-rgb), 0.05))' }}
               >
@@ -413,23 +438,29 @@ export default function ClientAssetList({ initialAssets }: Props) {
                     <label htmlFor="statusFilter" className="form-label">Status</label>
                     <div className="dropdown">
                       <button
-                        className="btn btn-primary dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start"
+                        className={`btn ${statusFilter ? 'btn-primary' : 'btn-secondary'} dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start`}
                         id="statusFilter"
                         type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
+                        aria-expanded={openFilterMenu === 'status'}
+                        onClick={() => toggleFilterMenu('status')}
                       >
                         {statusFilterLabel}
                       </button>
-                      <ul className="dropdown-menu w-100">
+                      <ul className={`dropdown-menu w-100${openFilterMenu === 'status' ? ' show' : ''}`}>
                         <li>
-                          <button className="dropdown-item" type="button" onClick={() => setStatusFilter('')}>
+                          <button className="dropdown-item" type="button" onClick={() => {
+                            setStatusFilter('');
+                            setOpenFilterMenu(null);
+                          }}>
                             All
                           </button>
                         </li>
                         {statusFilterOptions.map(option => (
                           <li key={option.value}>
-                            <button className="dropdown-item" type="button" onClick={() => setStatusFilter(option.value)}>
+                            <button className="dropdown-item" type="button" onClick={() => {
+                              setStatusFilter(option.value);
+                              setOpenFilterMenu(null);
+                            }}>
                               {option.label}
                             </button>
                           </li>
@@ -441,23 +472,29 @@ export default function ClientAssetList({ initialAssets }: Props) {
                     <label htmlFor="brandFilter" className="form-label">Brand</label>
                     <div className="dropdown">
                       <button
-                        className="btn btn-primary dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start"
+                        className={`btn ${brandFilter ? 'btn-primary' : 'btn-secondary'} dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start`}
                         id="brandFilter"
                         type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
+                        aria-expanded={openFilterMenu === 'brand'}
+                        onClick={() => toggleFilterMenu('brand')}
                       >
                         {brandFilter || 'All'}
                       </button>
-                      <ul className="dropdown-menu w-100">
+                      <ul className={`dropdown-menu w-100${openFilterMenu === 'brand' ? ' show' : ''}`}>
                         <li>
-                          <button className="dropdown-item" type="button" onClick={() => setBrandFilter('')}>
+                          <button className="dropdown-item" type="button" onClick={() => {
+                            setBrandFilter('');
+                            setOpenFilterMenu(null);
+                          }}>
                             All
                           </button>
                         </li>
                         {brandOptions.map(brand => (
                           <li key={brand}>
-                            <button className="dropdown-item" type="button" onClick={() => setBrandFilter(brand)}>
+                            <button className="dropdown-item" type="button" onClick={() => {
+                              setBrandFilter(brand);
+                              setOpenFilterMenu(null);
+                            }}>
                               {brand}
                             </button>
                           </li>
@@ -469,23 +506,29 @@ export default function ClientAssetList({ initialAssets }: Props) {
                     <label htmlFor="modelFilter" className="form-label">Model</label>
                     <div className="dropdown">
                       <button
-                        className="btn btn-primary dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start"
+                        className={`btn ${modelFilter ? 'btn-primary' : 'btn-secondary'} dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start`}
                         id="modelFilter"
                         type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
+                        aria-expanded={openFilterMenu === 'model'}
+                        onClick={() => toggleFilterMenu('model')}
                       >
                         {modelFilter || 'All'}
                       </button>
-                      <ul className="dropdown-menu w-100">
+                      <ul className={`dropdown-menu w-100${openFilterMenu === 'model' ? ' show' : ''}`}>
                         <li>
-                          <button className="dropdown-item" type="button" onClick={() => setModelFilter('')}>
+                          <button className="dropdown-item" type="button" onClick={() => {
+                            setModelFilter('');
+                            setOpenFilterMenu(null);
+                          }}>
                             All
                           </button>
                         </li>
                         {modelOptions.map(model => (
                           <li key={model}>
-                            <button className="dropdown-item" type="button" onClick={() => setModelFilter(model)}>
+                            <button className="dropdown-item" type="button" onClick={() => {
+                              setModelFilter(model);
+                              setOpenFilterMenu(null);
+                            }}>
                               {model}
                             </button>
                           </li>
@@ -497,23 +540,29 @@ export default function ClientAssetList({ initialAssets }: Props) {
                     <label htmlFor="siteFilter" className="form-label">Site</label>
                     <div className="dropdown">
                       <button
-                        className="btn btn-primary dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start"
+                        className={`btn ${siteFilter ? 'btn-primary' : 'btn-secondary'} dropdown-toggle w-100 d-flex align-items-center justify-content-between text-start`}
                         id="siteFilter"
                         type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
+                        aria-expanded={openFilterMenu === 'site'}
+                        onClick={() => toggleFilterMenu('site')}
                       >
                         {siteFilter || 'All'}
                       </button>
-                      <ul className="dropdown-menu w-100">
+                      <ul className={`dropdown-menu w-100${openFilterMenu === 'site' ? ' show' : ''}`}>
                         <li>
-                          <button className="dropdown-item" type="button" onClick={() => setSiteFilter('')}>
+                          <button className="dropdown-item" type="button" onClick={() => {
+                            setSiteFilter('');
+                            setOpenFilterMenu(null);
+                          }}>
                             All
                           </button>
                         </li>
                         {siteOptions.map(site => (
                           <li key={site}>
-                            <button className="dropdown-item" type="button" onClick={() => setSiteFilter(site)}>
+                            <button className="dropdown-item" type="button" onClick={() => {
+                              setSiteFilter(site);
+                              setOpenFilterMenu(null);
+                            }}>
                               {site}
                             </button>
                           </li>

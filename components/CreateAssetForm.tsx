@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createAsset } from '@/actions/createAsset'; // server action
+import { clearUnsavedChanges, confirmUnsavedNavigationWithDialog, setUnsavedChanges } from '@/lib/unsavedChanges';
 import type { AssetPropertyOptions } from '@/types/asset';
+import { useAppDialog } from './AppDialog';
+import AssetImagePicker from './AssetImagePicker';
 import PropertyAutocompleteInput from './PropertyAutocompleteInput';
 
 interface Props {
@@ -13,8 +16,10 @@ interface Props {
 
 export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
     const router = useRouter();
+    const isNavigatingAfterSave = useRef(false);
+    const { dialogElement, showConfirm } = useAppDialog();
 
-    const [formData, setFormData] = useState({
+    const initialFormData = useMemo(() => ({
         _id: defaultId,
         Brand: '',
         Model: '',
@@ -23,7 +28,10 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
         Purchase_Date: '',
         Type: '',
         Site: '',
-    });
+        Image: '',
+    }), [defaultId]);
+
+    const [formData, setFormData] = useState(initialFormData);
 
     // For extra (arbitrary) properties
     const [extraProps, setExtraProps] = useState<Record<string, string>>({});
@@ -40,6 +48,88 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const isDirty = useMemo(
+        () =>
+            JSON.stringify(formData) !== JSON.stringify(initialFormData) ||
+            Object.keys(extraProps).length > 0 ||
+            newPropKey.trim() !== '' ||
+            newPropValue !== '',
+        [extraProps, formData, initialFormData, newPropKey, newPropValue]
+    );
+
+    useEffect(() => {
+        setUnsavedChanges(isDirty && !isNavigatingAfterSave.current);
+
+        return () => {
+            clearUnsavedChanges();
+        };
+    }, [isDirty]);
+
+    useEffect(() => {
+        if (!isDirty || isNavigatingAfterSave.current) return;
+
+        const message = 'You have unsaved changes. Leave this page?';
+        const currentUrl = window.location.href;
+
+        function handleBeforeUnload(event: BeforeUnloadEvent) {
+            if (isNavigatingAfterSave.current) return;
+
+            event.preventDefault();
+            event.returnValue = message;
+        }
+
+        async function handleDocumentClick(event: MouseEvent) {
+            if (
+                event.defaultPrevented ||
+                event.button !== 0 ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey
+            ) {
+                return;
+            }
+
+            const target = event.target as Element | null;
+            const link = target?.closest('a[href]') as HTMLAnchorElement | null;
+            if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+                return;
+            }
+
+            const destination = new URL(link.href, window.location.href);
+            if (destination.href === window.location.href) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (await confirmUnsavedNavigationWithDialog(showConfirm)) {
+                isNavigatingAfterSave.current = true;
+                window.location.href = destination.href;
+            }
+        }
+
+        async function handlePopState() {
+            if (!(await confirmUnsavedNavigationWithDialog(showConfirm))) {
+                window.history.pushState(null, '', currentUrl);
+            } else {
+                isNavigatingAfterSave.current = true;
+            }
+        }
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        window.addEventListener('popstate', handlePopState);
+        document.addEventListener('click', handleDocumentClick, true);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            window.removeEventListener('popstate', handlePopState);
+            document.removeEventListener('click', handleDocumentClick, true);
+        };
+    }, [isDirty, showConfirm]);
 
     function onChange(
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -74,6 +164,8 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
                 ...extraProps, // Include extra properties
             });
 
+            isNavigatingAfterSave.current = true;
+            clearUnsavedChanges();
             router.push('/');
         } catch (err: any) {
             setError(err.message || 'Failed to create asset');
@@ -83,8 +175,9 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
 
     return (
         <div className="container mt-3">
+            {dialogElement}
             <h1 className="display-6 fw-normal">Create New Asset</h1>
-            <form onSubmit={handleSubmit} className="mt-4">
+            <form onSubmit={handleSubmit} className="asset-form mt-4">
                 <div className="mb-3">
                     <label htmlFor="_id" className="form-label">Asset ID</label>
                     <input
@@ -180,6 +273,13 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
                         value={formData.Site}
                         options={propertyOptions.Site}
                         onValueChange={(value) => setFormValue('Site', value)}
+                    />
+                </div>
+
+                <div className="mb-3">
+                    <AssetImagePicker
+                        value={formData.Image}
+                        onChange={(value) => setFormValue('Image', value)}
                     />
                 </div>
 

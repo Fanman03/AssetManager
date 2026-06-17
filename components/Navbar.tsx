@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { confirmUnsavedNavigationWithDialog } from '@/lib/unsavedChanges';
+import { useAppDialog } from './AppDialog';
 
 const appName = process.env.NEXT_PUBLIC_APP_NAME || 'Asset Manager';
 
@@ -20,6 +22,7 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const pathname = usePathname();
   const router = useRouter();
+  const { dialogElement, showConfirm } = useAppDialog();
 
   const [authorized, setAuthorized] = useState(false);
 
@@ -29,7 +32,9 @@ const Navbar: React.FC<NavbarProps> = ({
       .catch(() => setAuthorized(false));
   }, []);
 
-  const handleBackClick = () => {
+  const handleBackClick = async () => {
+    if (!(await confirmUnsavedNavigationWithDialog(showConfirm))) return;
+
     const match = pathname.match(/^\/(i|edit)\/(.+)$/);
     if (match) {
       router.push(`/${match[2]}`);
@@ -38,11 +43,15 @@ const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  const handleLoginClick = () => {
+  const handleLoginClick = async () => {
+    if (!(await confirmUnsavedNavigationWithDialog(showConfirm))) return;
+
     router.push(`/login?returnTo=${encodeURIComponent(pathname)}`);
   };
 
   const handleLogout = async () => {
+    if (!(await confirmUnsavedNavigationWithDialog(showConfirm))) return;
+
     try {
       await fetch('/api/logout', {
         method: 'POST',
@@ -61,6 +70,7 @@ const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
+    <>
     <nav className="navbar navbar-expand-lg bg-primary">
       {hideLogin ? (
         <style>{`#logoutBtn, #loginBtn {display: none !important};`}</style>
@@ -161,6 +171,8 @@ const Navbar: React.FC<NavbarProps> = ({
         )}
       </div>
     </nav>
+    {dialogElement}
+    </>
   );
 };
 

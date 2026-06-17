@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAppDialog } from './AppDialog';
 
 type DbStatusResponse = {
     status: 'connected' | 'demo' | 'error';
@@ -14,6 +15,7 @@ export default function SettingsContent() {
     const [status, setStatus] = useState<DbStatusResponse | null>(null);
     const [importing, setImporting] = useState(false);
     const [authorized, setAuthorized] = useState<boolean | null>(null);
+    const { dialogElement, showAlert } = useAppDialog();
 
     // Fetch database status
     useEffect(() => {
@@ -65,7 +67,11 @@ export default function SettingsContent() {
             link.click();
             URL.revokeObjectURL(url);
         } catch (e) {
-            alert(`Export failed: ${(e as Error).message}`);
+            await showAlert({
+                title: 'Export Failed',
+                message: `Export failed: ${(e as Error).message}`,
+                variant: 'danger',
+            });
         }
     };
 
@@ -81,7 +87,11 @@ export default function SettingsContent() {
             link.click();
             URL.revokeObjectURL(url);
         } catch (e) {
-            alert(`Export failed: ${(e as Error).message}`);
+            await showAlert({
+                title: 'Export Failed',
+                message: `Export failed: ${(e as Error).message}`,
+                variant: 'danger',
+            });
         }
     };
 
@@ -107,17 +117,33 @@ export default function SettingsContent() {
             });
             const result = await res.json();
             if (res.ok) {
-                alert(`Import completed: Inserted ${result.inserted}, Replaced ${result.replaced}`);
+                await showAlert({
+                    title: 'Import Complete',
+                    message: `Inserted ${result.inserted}, replaced ${result.replaced}.`,
+                    variant: 'success',
+                });
             } else {
                 if (res.status === 401) {
-                    alert('You must be logged in to import.');
+                    await showAlert({
+                        title: 'Login Required',
+                        message: 'You must be logged in to import.',
+                        variant: 'warning',
+                    });
                     router.push('/login?returnTo=/settings');
                 } else {
-                    alert(`Import failed: ${result.error}`);
+                    await showAlert({
+                        title: 'Import Failed',
+                        message: `Import failed: ${result.error}`,
+                        variant: 'danger',
+                    });
                 }
             }
         } catch (e) {
-            alert(`Import failed: ${(e as Error).message}`);
+            await showAlert({
+                title: 'Import Failed',
+                message: `Import failed: ${(e as Error).message}`,
+                variant: 'danger',
+            });
         } finally {
             setImporting(false);
             event.target.value = ''; // reset file input
@@ -125,44 +151,47 @@ export default function SettingsContent() {
     };
 
     return (
-        <div className="container mt-5">
-            <h1>Settings</h1>
-            <section>
-                <h3>Database</h3>
-                <p className="mb-0">
-                    Connection Status:{' '}
-                    {status ? (
-                        <strong className={getStatusColor(status.status)}>
-                            <span className="text-capitalize">{status.status}</span>
-                        </strong>
-                    ) : (
-                        <span className="text-white">Checking...</span>
-                    )}
-                </p>
-                <button
-                    className="btn btn-primary me-2 my-2"
-                    onClick={handleExport}>
-                    <i className="bi bi-download me-2"></i>Export Database
-                </button>
+        <>
+            <div className="container mt-5">
+                <h1>Settings</h1>
+                <section>
+                    <h3>Database</h3>
+                    <p className="mb-0">
+                        Connection Status:{' '}
+                        {status ? (
+                            <strong className={getStatusColor(status.status)}>
+                                <span className="text-capitalize">{status.status}</span>
+                            </strong>
+                        ) : (
+                            <span className="text-white">Checking...</span>
+                        )}
+                    </p>
+                    <button
+                        className="btn btn-primary me-2 my-2"
+                        onClick={handleExport}>
+                        <i className="bi bi-download me-2"></i>Export Database
+                    </button>
 
-                <label
-                    className={`btn btn-secondary me-2 my-2 ${authorized === false ? 'disabled' : ''}`}
-                >
-                    <i className="bi bi-upload me-2"></i>
-                    {importing ? 'Importing...' : 'Import Database'}
-                    <input
-                        type="file"
-                        accept=".json"
-                        onChange={handleImport}
-                        className="d-none"
-                        disabled={importing || !authorized}
-                    />
-                </label>
-                <p>
-                    <button className="btn btn-success me-2 my-2" onClick={handleExportCSV}>
-                        <i className="bi bi-filetype-csv me-2"></i>Export to CSV</button>
-                </p>
-            </section>
-        </div>
+                    <label
+                        className={`btn btn-secondary me-2 my-2 ${authorized === false ? 'disabled' : ''}`}
+                    >
+                        <i className="bi bi-upload me-2"></i>
+                        {importing ? 'Importing...' : 'Import Database'}
+                        <input
+                            type="file"
+                            accept=".json"
+                            onChange={handleImport}
+                            className="d-none"
+                            disabled={importing || !authorized}
+                        />
+                    </label>
+                    <p>
+                        <button className="btn btn-success me-2 my-2" onClick={handleExportCSV}>
+                            <i className="bi bi-filetype-csv me-2"></i>Export to CSV</button>
+                    </p>
+                </section>
+            </div>
+            {dialogElement}
+        </>
     );
 }

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Roboto, Roboto_Mono } from 'next/font/google';
 import { Asset } from '@/types/asset';
+import { useAppDialog } from './AppDialog';
 
 const roboto = Roboto({ weight: ['400'], subsets: ['latin'] });
 const robotoMono = Roboto_Mono({ weight: ['400'], subsets: ['latin'] });
@@ -39,6 +40,7 @@ declare global {
 const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawn, setIsDrawn] = useState(false);
+  const { dialogElement, showAlert } = useAppDialog();
 
   useEffect(() => {
     const draw = async () => {
@@ -151,7 +153,11 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
 
   const printToDYMO = async () => {
     if (!window?.dymo?.label?.framework) {
-      alert('DYMO SDK not loaded');
+      await showAlert({
+        title: 'Printer Unavailable',
+        message: 'DYMO SDK not loaded.',
+        variant: 'warning',
+      });
       return;
     }
 
@@ -174,7 +180,11 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
       const printers: DymoPrinter[] = window.dymo.label.framework.getPrinters();
       const printer = printers.find(p => p.printerType === 'LabelWriterPrinter');
       if (!printer) {
-        alert('No DYMO LabelWriter printer found.');
+        await showAlert({
+          title: 'Printer Not Found',
+          message: 'No DYMO LabelWriter printer found.',
+          variant: 'warning',
+        });
         return;
       }
 
@@ -191,33 +201,36 @@ const BarcodeCanvas: React.FC<Props> = ({ asset }) => {
   };
 
   return (
-    <div
-      className="text-center container"
-    >
-      <canvas
-        ref={canvasRef}
-        className="col-md-8"
-        width={1866}
-        height={600}
-        style={{ border: '1px solid #ccc', maxWidth: '100%' }}
-        id="barcodeCanvas"
-      />
-      <div>
-        <button
-          className="btn btn-primary m-2"
-          onClick={downloadImage}
-          disabled={!isDrawn}><i className="bi bi-download me-2"></i>Download as PNG</button>
-        <button
-          className="btn btn-success m-2"
-          onClick={printToDYMO}
-          disabled={!isDrawn}><i className="bi bi-printer me-2"></i>Print with DYMO</button>
-        <button
-          className="btn btn-secondary m-2"
-          onClick={printWithSystemDialog}
-          disabled={!isDrawn}
-        ><i className="bi bi-printer-fill me-2"></i>Print with System Dialog</button>
+    <>
+      <div
+        className="text-center container"
+      >
+        <canvas
+          ref={canvasRef}
+          className="col-md-8"
+          width={1866}
+          height={600}
+          style={{ border: '1px solid #ccc', maxWidth: '100%' }}
+          id="barcodeCanvas"
+        />
+        <div>
+          <button
+            className="btn btn-primary m-2"
+            onClick={downloadImage}
+            disabled={!isDrawn}><i className="bi bi-download me-2"></i>Download as PNG</button>
+          <button
+            className="btn btn-success m-2"
+            onClick={printToDYMO}
+            disabled={!isDrawn}><i className="bi bi-printer me-2"></i>Print with DYMO</button>
+          <button
+            className="btn btn-secondary m-2"
+            onClick={printWithSystemDialog}
+            disabled={!isDrawn}
+          ><i className="bi bi-printer-fill me-2"></i>Print with System Dialog</button>
+        </div>
       </div>
-    </div>
+      {dialogElement}
+    </>
   );
 };
 

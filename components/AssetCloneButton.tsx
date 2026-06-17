@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useAppDialog } from './AppDialog';
 
 export default function AssetCloneButton({ assetId }: { assetId: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const [authorized, setAuthorized] = useState(false);
+  const { dialogElement, showAlert, showPrompt } = useAppDialog();
 
   useEffect(() => {
     fetch('/api/check-auth', { credentials: 'include' })
@@ -20,7 +22,15 @@ export default function AssetCloneButton({ assetId }: { assetId: string }) {
       return;
     }
 
-    const newId = prompt('Enter a new Asset Tag (ID) for the clone:');
+    const newId = await showPrompt({
+      title: 'Clone Asset',
+      message: 'Enter a new Asset Tag (ID) for the clone.',
+      inputLabel: 'New Asset Tag',
+      placeholder: 'Asset tag',
+      confirmLabel: 'Clone Asset',
+      required: true,
+      variant: 'info',
+    });
     if (!newId) return;
 
     try {
@@ -32,17 +42,28 @@ export default function AssetCloneButton({ assetId }: { assetId: string }) {
       });
 
       if (!res.ok) throw new Error('Clone failed');
-      alert('Asset cloned successfully!');
+      await showAlert({
+        title: 'Asset Cloned',
+        message: 'Asset cloned successfully.',
+        variant: 'success',
+      });
       router.push(`/${newId}`);
     } catch (err: any) {
-      alert(err.message || 'Clone failed');
+      await showAlert({
+        title: 'Clone Failed',
+        message: err.message || 'Clone failed',
+        variant: 'danger',
+      });
     }
   };
 
   return (
-    <button className="btn btn-info m-2 assetControlBtn" onClick={handleCloneClick}>
-      <i className="bi bi-files me-2" />
-      Clone Asset
-    </button>
+    <>
+      <button className="btn btn-info m-2 assetControlBtn" onClick={handleCloneClick}>
+        <i className="bi bi-files me-2" />
+        Clone Asset
+      </button>
+      {dialogElement}
+    </>
   );
 }
