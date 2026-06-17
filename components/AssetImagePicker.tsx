@@ -11,7 +11,7 @@ type AssetImagePickerProps = {
 
 export default function AssetImagePicker({ value, onChange, initialSearch = '' }: AssetImagePickerProps) {
   const [images, setImages] = useState<AssetImageOption[]>([]);
-  const [query, setQuery] = useState(initialSearch);
+  const [query, setQuery] = useState('');
   const [hasEditedQuery, setHasEditedQuery] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,8 +55,18 @@ export default function AssetImagePicker({ value, onChange, initialSearch = '' }
   useEffect(() => {
     if (hasEditedQuery) return;
 
-    setQuery(initialSearch);
-  }, [hasEditedQuery, initialSearch]);
+    const candidate = initialSearch.trim();
+    if (!candidate || images.length === 0) {
+      setQuery('');
+      return;
+    }
+
+    const hasMatchingImages = images.some((image) =>
+      image.path.toLowerCase().includes(candidate.toLowerCase())
+    );
+
+    setQuery(hasMatchingImages ? initialSearch : '');
+  }, [hasEditedQuery, images, initialSearch]);
 
   async function refreshImages() {
     if (!showPicker) {
