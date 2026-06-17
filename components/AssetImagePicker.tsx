@@ -6,11 +6,13 @@ import { ASSET_IMAGE_REPO_URL, type AssetImageOption } from '@/lib/assetImages';
 type AssetImagePickerProps = {
   value: string;
   onChange: (value: string) => void;
+  initialSearch?: string;
 };
 
-export default function AssetImagePicker({ value, onChange }: AssetImagePickerProps) {
+export default function AssetImagePicker({ value, onChange, initialSearch = '' }: AssetImagePickerProps) {
   const [images, setImages] = useState<AssetImageOption[]>([]);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialSearch);
+  const [hasEditedQuery, setHasEditedQuery] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(false);
@@ -49,6 +51,12 @@ export default function AssetImagePicker({ value, onChange }: AssetImagePickerPr
       controller.abort();
     };
   }, [images.length, showPicker]);
+
+  useEffect(() => {
+    if (hasEditedQuery) return;
+
+    setQuery(initialSearch);
+  }, [hasEditedQuery, initialSearch]);
 
   async function refreshImages() {
     if (!showPicker) {
@@ -136,7 +144,10 @@ export default function AssetImagePicker({ value, onChange }: AssetImagePickerPr
                 type="search"
                 className="form-control"
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  setHasEditedQuery(true);
+                  setQuery(event.target.value);
+                }}
                 placeholder="Search repo images"
               />
               <button

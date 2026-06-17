@@ -279,6 +279,7 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
                 <div className="mb-3">
                     <AssetImagePicker
                         value={formData.Image}
+                        initialSearch={formData.Model}
                         onChange={(value) => setFormValue('Image', value)}
                     />
                 </div>

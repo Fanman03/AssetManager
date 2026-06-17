@@ -341,6 +341,7 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
                 <div className="mb-3">
                     <AssetImagePicker
                         value={formData.Image}
+                        initialSearch={formData.Model}
                         onChange={(value) => setFormValue('Image', value)}
                     />
                 </div>
