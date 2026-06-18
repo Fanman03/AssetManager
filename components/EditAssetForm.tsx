@@ -16,6 +16,7 @@ const BUILT_IN_PROPERTY_KEYS = new Set([
     'Model',
     'Type',
     'Site',
+    'Location',
     'Status',
     'Description',
     'Purchase_Date',
@@ -41,6 +42,7 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
         Model: asset.Model || '',
         Type: asset.Type || '',
         Site: asset.Site || '',
+        Location: asset.Location || '',
         Status: asset.Status ?? 1,
         Description: asset.Description || '',
         Purchase_Date: asset.Purchase_Date
@@ -62,6 +64,7 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
                         'Model',
                         'Type',
                         'Site',
+                        'Location',
                         'Status',
                         'Description',
                         'Purchase_Date',
@@ -233,6 +236,7 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
                         'Model',
                         'Type',
                         'Site',
+                        'Location',
                         'Status',
                         'Description',
                         'Purchase_Date',
@@ -309,6 +313,20 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
                         value={formData.Site}
                         options={propertyOptions.Site}
                         onValueChange={(value) => setFormValue('Site', value)}
+                    />
+                </div>
+
+                {/* Location */}
+                <div className="mb-3">
+                    <label htmlFor="Location" className="form-label">
+                        Location
+                    </label>
+                    <PropertyAutocompleteInput
+                        id="Location"
+                        name="Location"
+                        value={formData.Location}
+                        options={propertyOptions.Location}
+                        onValueChange={(value) => setFormValue('Location', value)}
                     />
                 </div>
 

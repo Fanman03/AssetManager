@@ -4,6 +4,7 @@ export interface Asset {
   Model: string;
   Type?: string;
   Site?: string;
+  Location?: string;
   Description: string;
   Purchase_Date: number;
   Status: number;
@@ -15,4 +16,5 @@ export type AssetPropertyOptions = Record<string, string[]> & {
   Model: string[];
   Type: string[];
   Site: string[];
+  Location: string[];
 };

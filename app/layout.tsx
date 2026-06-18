@@ -1,17 +1,28 @@
 // app/layout.tsx
 import './globals.css'; // You can add bootstrap and custom styles here
 import Script from 'next/script';
+import type { Metadata } from 'next';
 import BootstrapClient from "@/components/BootstrapClient";
 import Footer from '@/components/Footer';
 import { Roboto, Roboto_Mono } from 'next/font/google'
 const appName = process.env.NEXT_PUBLIC_APP_NAME;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: appName,
-  description: 'Self-hosted asset tracking system.',
+  applicationName: appName,
+  description: 'A simple, locally-hosted asset management platform.',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: appName,
+    statusBarStyle: 'default',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: appName,
-    description: 'Self-hosted asset tracking system.',
+    description: 'A simple, locally-hosted asset management platform.',
     url: process.env.NEXT_PUBLIC_BASE_DOMAIN,
     siteName: appName,
     images: [
@@ -27,7 +38,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: appName,
-    description: 'Self-hosted asset tracking system.',
+    description: 'A simple, locally-hosted asset management platform.',
     images: [`${process.env.NEXT_PUBLIC_BASE_DOMAIN}/img/opengraph.png`],
   },
 };

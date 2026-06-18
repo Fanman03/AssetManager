@@ -1,4 +1,5 @@
 import { getAssetById } from '@/lib/db';
+import { makeSiteId } from '@/lib/siteUtils';
 import { format } from 'date-fns';
 import Navbar from '@/components/Navbar';
 import AssetDeleteButton from '@/components/AssetDeleteButton';
@@ -65,7 +66,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
   }
 
 
-  const { _id, Brand, Model, Status, Purchase_Date, Image, Description, Site, ...rest } = asset;
+  const { _id, Brand, Model, Status, Purchase_Date, Image, Description, Site, Location, ...rest } = asset;
 
   const imgSrc = `${process.env.NEXT_PUBLIC_BASE_DOMAIN}/thumb/${_id}`;
 
@@ -95,7 +96,13 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
             {Site && (
               <p>
                 <strong>Site:</strong>{' '}
-                <span>{Site}</span>
+                <a href={`/site/${makeSiteId(Site)}`}>{Site}</a>
+              </p>
+            )}
+            {Location && (
+              <p>
+                <strong>Location:</strong>{' '}
+                <span>{Location}</span>
               </p>
             )}
           </div>

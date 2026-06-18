@@ -1,5 +1,7 @@
 import { MongoClient, WithId, Db } from 'mongodb';
 import type { Asset } from '@/types/asset';
+import type { Site } from '@/types/site';
+import { makeSiteId } from '@/lib/siteUtils';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -48,6 +50,25 @@ export function getDatabaseStatus(): { status: DbStatus; demoMode: boolean; last
     demoMode: isDemoMode,
     lastError: lastError instanceof Error ? lastError.message : undefined
   };
+}
+
+function normalizeSiteForStorage(site: Partial<Site>): Site | null {
+  const name = String(site.name ?? site._id ?? '').trim();
+  if (!name) return null;
+
+  const now = Math.floor(Date.now() / 1000);
+  const aliases = Array.from(
+    new Set([...(site.aliases ?? []), name].map(alias => String(alias).trim()).filter(Boolean))
+  );
+
+  return {
+    ...site,
+    _id: makeSiteId(name),
+    name,
+    aliases,
+    createdAt: site.createdAt ?? now,
+    updatedAt: now,
+  } as Site;
 }
 
 // connection
@@ -109,6 +130,104 @@ export async function getAllAssets(): Promise<Asset[]> {
     lastError = err;
     fallbackToMemory('Error fetching assets.');
     return await getDummyAssets();
+  }
+}
+
+export async function getAssetsBySiteId(siteId: string): Promise<Asset[]> {
+  const normalizedSiteId = makeSiteId(siteId);
+  const site = await getSiteById(normalizedSiteId);
+  const matchingSiteIds = new Set([
+    normalizedSiteId,
+    ...(site ? [site.name, ...(site.aliases ?? [])].map(makeSiteId) : []),
+  ]);
+  const assets = await getAllAssets();
+
+  return assets.filter(asset => {
+    const siteName = String(asset.Site ?? '').trim();
+    return siteName && matchingSiteIds.has(makeSiteId(siteName));
+  });
+}
+
+export async function getAllSites(): Promise<Site[]> {
+  const db = await connectToDb();
+  if (!db) return [];
+
+  try {
+    const docs: WithId<Site>[] = await db.collection<Site>('sites').find({}).sort({ name: 1 }).toArray();
+    return docs.map(doc => ({ ...doc, _id: doc._id.toString() })) as Site[];
+  } catch (err) {
+    lastError = err;
+    fallbackToMemory('Error fetching sites.');
+    return [];
+  }
+}
+
+export async function getSiteById(siteId: string): Promise<Site | null> {
+  const db = await connectToDb();
+  if (!db) return null;
+
+  try {
+    const id = makeSiteId(siteId);
+    const doc = await db.collection<Site>('sites').findOne({ _id: id });
+    if (!doc) return null;
+    return { ...doc, _id: doc._id.toString() } as Site;
+  } catch (err) {
+    lastError = err;
+    fallbackToMemory('Error fetching site by ID.');
+    return null;
+  }
+}
+
+export async function saveSite(originalId: string, data: Partial<Site>): Promise<Site> {
+  const site = normalizeSiteForStorage(data);
+  if (!site) throw new Error('Site name is required');
+
+  const db = await connectToDb();
+  if (!db) {
+    fallbackToMemory('Site update unsupported in fallback mode.');
+    return site;
+  }
+
+  try {
+    const col = db.collection<Site>('sites');
+    const normalizedOriginalId = makeSiteId(originalId);
+    const existingOriginal = normalizedOriginalId ? await col.findOne({ _id: normalizedOriginalId }) : null;
+    const aliases = Array.from(
+      new Set([
+        ...(site.aliases ?? []),
+        ...(existingOriginal?.aliases ?? []),
+        existingOriginal?.name,
+        site.name,
+      ].map(alias => String(alias ?? '').trim()).filter(Boolean))
+    );
+    site.aliases = aliases;
+
+    if (normalizedOriginalId && normalizedOriginalId !== site._id) {
+      await col.deleteOne({ _id: normalizedOriginalId });
+    }
+
+    const existing = await col.findOne({ _id: site._id });
+    const result = await col.replaceOne(
+      { _id: site._id },
+      {
+        ...existing,
+        ...site,
+        createdAt: existing?.createdAt ?? existingOriginal?.createdAt ?? site.createdAt,
+        updatedAt: Math.floor(Date.now() / 1000),
+      },
+      { upsert: true }
+    );
+
+    if (!result.acknowledged) throw new Error('Failed to save site');
+    return {
+      ...site,
+      createdAt: existing?.createdAt ?? existingOriginal?.createdAt ?? site.createdAt,
+      updatedAt: Math.floor(Date.now() / 1000),
+    };
+  } catch (err) {
+    lastError = err;
+    fallbackToMemory('Error saving site.');
+    throw err;
   }
 }
 
@@ -204,6 +323,41 @@ export async function importAssetsFromJson(assets: Asset[], overwrite = false): 
     }
 
     const res = await col.replaceOne({ _id: asset._id }, asset, { upsert: true });
+    if (res.upsertedId) inserted += 1;
+    else replaced += res.modifiedCount;
+  }
+
+  return { inserted, replaced };
+}
+
+export async function importSitesFromJson(sites: Partial<Site>[], overwrite = false): Promise<{
+  inserted: number;
+  replaced: number;
+}> {
+  const db = await connectToDb();
+  if (!db) {
+    fallbackToMemory('Site import unsupported in fallback mode.');
+    return { inserted: 0, replaced: 0 };
+  }
+
+  const col = db.collection<Site>('sites');
+
+  if (overwrite) {
+    const { deletedCount } = await col.deleteMany({});
+    console.log(`[Site Import] Cleared ${deletedCount} sites.`);
+  }
+
+  let inserted = 0;
+  let replaced = 0;
+
+  for (const siteData of sites) {
+    const site = normalizeSiteForStorage(siteData);
+    if (!site) {
+      console.warn('[Site Import] Skipped site without name');
+      continue;
+    }
+
+    const res = await col.replaceOne({ _id: site._id }, site, { upsert: true });
     if (res.upsertedId) inserted += 1;
     else replaced += res.modifiedCount;
   }

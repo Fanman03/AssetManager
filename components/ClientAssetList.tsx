@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Asset } from '@/types/asset';
+import { makeSiteId } from '@/lib/siteUtils';
 import Navbar from './Navbar';
 import FloatingAddButton from './FloatingAddButton';
 import markdownit from 'markdown-it'
@@ -80,7 +81,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
   const [debouncedSearchTerm] = useDebounce(searchTerm, 100);
 
   const fuse = useMemo(() => new Fuse(initialAssets, {
-    keys: ['_id', 'Brand', 'Model', 'Description', 'Type', 'Site'],
+    keys: ['_id', 'Brand', 'Model', 'Description', 'Type', 'Site', 'Location'],
     threshold: 0.3,
     includeMatches: true,
   }), [initialAssets]);
@@ -677,7 +678,13 @@ export default function ClientAssetList({ initialAssets }: Props) {
                     </td>
                     <td>{asset.Brand}</td>
                     <td>{asset.Model}</td>
-                    <td>{asset.Site}</td>
+                    <td>
+                      {asset.Site ? (
+                        <Link href={`/site/${makeSiteId(asset.Site)}`} onClick={(event) => event.stopPropagation()}>
+                          {asset.Site}
+                        </Link>
+                      ) : null}
+                    </td>
                     <td dangerouslySetInnerHTML={{ __html: md.renderInline(asset.Description) }} />
                   </tr>
                 ))}

@@ -15,7 +15,7 @@ const uniqueSortedOptions = (assets: Asset[], field: keyof Asset): string[] => {
 };
 
 export function getAssetPropertyOptions(assets: Asset[]): AssetPropertyOptions {
-  const fields = new Set<string>(['Brand', 'Model', 'Type', 'Site']);
+  const fields = new Set<string>(['Brand', 'Model', 'Type', 'Site', 'Location']);
 
   for (const asset of assets) {
     for (const field of Object.keys(asset)) {

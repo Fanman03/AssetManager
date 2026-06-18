@@ -14,6 +14,7 @@ export default function SettingsContent() {
     const router = useRouter();
     const [status, setStatus] = useState<DbStatusResponse | null>(null);
     const [importing, setImporting] = useState(false);
+    const [importingSites, setImportingSites] = useState(false);
     const [authorized, setAuthorized] = useState<boolean | null>(null);
     const { dialogElement, showAlert } = useAppDialog();
 
@@ -95,6 +96,26 @@ export default function SettingsContent() {
         }
     };
 
+    const handleExportSites = async () => {
+        try {
+            const res = await fetch('/api/db/sites/export');
+            if (!res.ok) throw new Error('Failed to export site data.');
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `sites-export-${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            await showAlert({
+                title: 'Site Export Failed',
+                message: `Site export failed: ${(e as Error).message}`,
+                variant: 'danger',
+            });
+        }
+    };
+
     // Import database from JSON file (requires auth)
     const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!event.target.files?.[0]) return;
@@ -150,13 +171,67 @@ export default function SettingsContent() {
         }
     };
 
+    const handleImportSites = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (!event.target.files?.[0]) return;
+        if (!authorized) {
+            router.push('/login?returnTo=/settings');
+            return;
+        }
+
+        const file = event.target.files[0];
+        setImportingSites(true);
+
+        try {
+            const text = await file.text();
+            const json = JSON.parse(text);
+            const res = await fetch('/api/db/sites/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ overwrite: false, sites: json }),
+            });
+            const result = await res.json();
+            if (res.ok) {
+                await showAlert({
+                    title: 'Site Import Complete',
+                    message: `Inserted ${result.inserted}, replaced ${result.replaced}.`,
+                    variant: 'success',
+                });
+            } else {
+                if (res.status === 401) {
+                    await showAlert({
+                        title: 'Login Required',
+                        message: 'You must be logged in to import site data.',
+                        variant: 'warning',
+                    });
+                    router.push('/login?returnTo=/settings');
+                } else {
+                    await showAlert({
+                        title: 'Site Import Failed',
+                        message: `Site import failed: ${result.error}`,
+                        variant: 'danger',
+                    });
+                }
+            }
+        } catch (e) {
+            await showAlert({
+                title: 'Site Import Failed',
+                message: `Site import failed: ${(e as Error).message}`,
+                variant: 'danger',
+            });
+        } finally {
+            setImportingSites(false);
+            event.target.value = '';
+        }
+    };
+
     return (
         <>
             <div className="container mt-5">
                 <h1>Settings</h1>
                 <section>
                     <h3>Database</h3>
-                    <p className="mb-0">
+                    <p>
                         Connection Status:{' '}
                         {status ? (
                             <strong className={getStatusColor(status.status)}>
@@ -166,28 +241,52 @@ export default function SettingsContent() {
                             <span className="text-white">Checking...</span>
                         )}
                     </p>
-                    <button
-                        className="btn btn-primary me-2 my-2"
-                        onClick={handleExport}>
-                        <i className="bi bi-download me-2"></i>Export Database
-                    </button>
-
-                    <label
-                        className={`btn btn-secondary me-2 my-2 ${authorized === false ? 'disabled' : ''}`}
-                    >
-                        <i className="bi bi-upload me-2"></i>
-                        {importing ? 'Importing...' : 'Import Database'}
-                        <input
-                            type="file"
-                            accept=".json"
-                            onChange={handleImport}
-                            className="d-none"
-                            disabled={importing || !authorized}
-                        />
-                    </label>
                     <p>
+                        <h4>Asset Data</h4>
+                        <button
+                            className="btn btn-primary me-2 my-2"
+                            onClick={handleExport}>
+                            <i className="bi bi-download me-2"></i>Export Assets
+                        </button>
+
+                        <label
+                            className={`btn btn-secondary me-2 my-2 ${authorized === false ? 'disabled' : ''}`}
+                        >
+                            <i className="bi bi-upload me-2"></i>
+                            {importing ? 'Importing...' : 'Import Assets'}
+                            <input
+                                type="file"
+                                accept=".json"
+                                onChange={handleImport}
+                                className="d-none"
+                                disabled={importing || !authorized}
+                            />
+                        </label>
                         <button className="btn btn-success me-2 my-2" onClick={handleExportCSV}>
-                            <i className="bi bi-filetype-csv me-2"></i>Export to CSV</button>
+                            <i className="bi bi-filetype-csv me-2"></i>Export Assets to CSV
+                        </button>
+                    </p>
+                    <p>
+                        <h4>Site Data</h4>
+                        <button
+                            className="btn btn-primary me-2 my-2"
+                            onClick={handleExportSites}>
+                            <i className="bi bi-building-down me-2"></i>Export Site Data
+                        </button>
+
+                        <label
+                            className={`btn btn-secondary me-2 my-2 ${authorized === false ? 'disabled' : ''}`}
+                        >
+                            <i className="bi bi-building-up me-2"></i>
+                            {importingSites ? 'Importing...' : 'Import Site Data'}
+                            <input
+                                type="file"
+                                accept=".json"
+                                onChange={handleImportSites}
+                                className="d-none"
+                                disabled={importingSites || !authorized}
+                            />
+                        </label>
                     </p>
                 </section>
             </div>
