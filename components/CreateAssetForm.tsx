@@ -9,6 +9,21 @@ import { useAppDialog } from './AppDialog';
 import AssetImagePicker from './AssetImagePicker';
 import PropertyAutocompleteInput from './PropertyAutocompleteInput';
 
+const BUILT_IN_PROPERTY_KEYS = new Set([
+    '_id',
+    'Brand',
+    'Model',
+    'Type',
+    'Site',
+    'Status',
+    'Description',
+    'Purchase_Date',
+    'Image',
+]);
+
+const formatPropertyName = (key: string) => key.replace(/_/g, ' ');
+const normalizePropertyKey = (key: string) => key.trim().replace(/\s+/g, '_');
+
 interface Props {
     defaultId: string;
     propertyOptions: AssetPropertyOptions;
@@ -48,6 +63,15 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const customPropertyNameOptions = useMemo(
+        () =>
+            Object.keys(propertyOptions)
+                .filter((key) => !BUILT_IN_PROPERTY_KEYS.has(key))
+                .map(formatPropertyName)
+                .sort((a, b) => a.localeCompare(b)),
+        [propertyOptions]
+    );
 
     const isDirty = useMemo(
         () =>
@@ -143,6 +167,13 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
 
     function setFormValue(name: keyof typeof formData, value: string) {
         setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    }
+
+    function setExtraPropValue(name: string, value: string) {
+        setExtraProps((prev) => ({
             ...prev,
             [name]: value,
         }));
@@ -294,15 +325,12 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
                             <label htmlFor={`extra-${key}`} className="form-label">
                                 {key.replace(/_/g, ' ')}
                             </label>
-                            <input
+                            <PropertyAutocompleteInput
                                 id={`extra-${key}`}
                                 name={key}
-                                type="text"
-                                className="form-control"
                                 value={value}
-                                onChange={(e) =>
-                                    setExtraProps((prev) => ({ ...prev, [key]: e.target.value }))
-                                }
+                                options={propertyOptions[key] ?? []}
+                                onValueChange={(nextValue) => setExtraPropValue(key, nextValue)}
                             />
                         </div>
                         <button
@@ -324,31 +352,36 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
 
                 {/* Add new property */}
                 <div className="input-group mb-3">
-                    <input
-                        type="text"
-                        className="form-control"
+                    <PropertyAutocompleteInput
+                        id="new-property-name"
+                        name="new-property-name"
+                        wrapperClassName="flex-grow-1"
                         placeholder="New property name"
                         value={newPropKey}
-                        onChange={(e) => setNewPropKey(e.target.value)}
+                        options={customPropertyNameOptions}
+                        onValueChange={setNewPropKey}
                     />
-                    <input
-                        type="text"
-                        className="form-control"
+                    <PropertyAutocompleteInput
+                        id="new-property-value"
+                        name="new-property-value"
+                        wrapperClassName="flex-grow-1"
                         placeholder="New property value"
                         value={newPropValue}
-                        onChange={(e) => setNewPropValue(e.target.value)}
+                        options={propertyOptions[normalizePropertyKey(newPropKey)] ?? []}
+                        onValueChange={setNewPropValue}
                     />
                     <button
                         type="button"
                         className="btn btn-primary"
                         onClick={() => {
-                            if (newPropKey.trim()) {
-                                setExtraProps((prev) => ({ ...prev, [newPropKey]: newPropValue }));
+                            const key = normalizePropertyKey(newPropKey);
+                            if (key) {
+                                setExtraProps((prev) => ({ ...prev, [key]: newPropValue }));
                                 setNewPropKey('');
                                 setNewPropValue('');
                             }
                         }}
-                        disabled={!newPropKey.trim()}
+                        disabled={!normalizePropertyKey(newPropKey)}
                     >
                         Add Property
                     </button>

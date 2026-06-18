@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type PropertyAutocompleteInputProps = {
   id: string;
   name: string;
   value: string;
   options: string[];
+  placeholder?: string;
+  wrapperClassName?: string;
   onValueChange: (value: string) => void;
 };
 
@@ -15,9 +18,13 @@ export default function PropertyAutocompleteInput({
   name,
   value,
   options,
+  placeholder,
+  wrapperClassName = '',
   onValueChange,
 }: PropertyAutocompleteInputProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<React.CSSProperties>({});
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   const filteredOptions = useMemo(() => {
     const query = value.trim().toLowerCase();
@@ -30,14 +37,51 @@ export default function PropertyAutocompleteInput({
 
   const showMenu = isOpen && filteredOptions.length > 0;
 
+  React.useEffect(() => {
+    if (!showMenu) return;
+
+    const updateMenuPosition = () => {
+      const rect = inputRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const maxHeight = 240;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const openUp = spaceBelow < maxHeight && spaceAbove > spaceBelow;
+
+      setMenuPosition({
+        left: rect.left,
+        width: rect.width,
+        maxHeight: `${maxHeight}px`,
+        overflowY: 'auto',
+        position: 'fixed',
+        zIndex: 1050,
+        ...(openUp
+          ? { bottom: window.innerHeight - rect.top }
+          : { top: rect.bottom }),
+      });
+    };
+
+    updateMenuPosition();
+    window.addEventListener('resize', updateMenuPosition);
+    window.addEventListener('scroll', updateMenuPosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updateMenuPosition);
+      window.removeEventListener('scroll', updateMenuPosition, true);
+    };
+  }, [showMenu]);
+
   return (
-    <div className="position-relative">
+    <div className={`position-relative ${wrapperClassName}`.trim()}>
       <input
+        ref={inputRef}
         id={id}
         name={name}
         type="text"
         className="form-control"
         autoComplete="off"
+        placeholder={placeholder}
         value={value}
         onChange={(e) => {
           onValueChange(e.target.value);
@@ -49,11 +93,11 @@ export default function PropertyAutocompleteInput({
         aria-expanded={showMenu}
         aria-controls={`${id}-options`}
       />
-      {showMenu && (
+      {showMenu && createPortal(
         <ul
           id={`${id}-options`}
-          className="dropdown-menu show w-100 shadow-sm"
-          style={{ maxHeight: '15rem', overflowY: 'auto', zIndex: 1050 }}
+          className="dropdown-menu show shadow-sm"
+          style={menuPosition}
         >
           {filteredOptions.map(option => (
             <li key={option}>
@@ -70,7 +114,8 @@ export default function PropertyAutocompleteInput({
               </button>
             </li>
           ))}
-        </ul>
+        </ul>,
+        document.body
       )}
     </div>
   );

@@ -10,7 +10,7 @@ export interface Asset {
   [key: string]: any; 
 }
 
-export type AssetPropertyOptions = {
+export type AssetPropertyOptions = Record<string, string[]> & {
   Brand: string[];
   Model: string[];
   Type: string[];

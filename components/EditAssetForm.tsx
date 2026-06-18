@@ -10,6 +10,21 @@ import PropertyAutocompleteInput from './PropertyAutocompleteInput';
 
 import { updateAsset } from '@/actions/updateAsset'; // Your server action
 
+const BUILT_IN_PROPERTY_KEYS = new Set([
+    '_id',
+    'Brand',
+    'Model',
+    'Type',
+    'Site',
+    'Status',
+    'Description',
+    'Purchase_Date',
+    'Image',
+]);
+
+const formatPropertyName = (key: string) => key.replace(/_/g, ' ');
+const normalizePropertyKey = (key: string) => key.trim().replace(/\s+/g, '_');
+
 interface EditAssetFormProps {
     asset: Asset;
     propertyOptions: AssetPropertyOptions;
@@ -65,6 +80,15 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const customPropertyNameOptions = useMemo(
+        () =>
+            Object.keys(propertyOptions)
+                .filter((key) => !BUILT_IN_PROPERTY_KEYS.has(key))
+                .map(formatPropertyName)
+                .sort((a, b) => a.localeCompare(b)),
+        [propertyOptions]
+    );
 
     const isDirty = useMemo(
         () =>
@@ -165,15 +189,16 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
         }));
     }
 
-    // Handlers for new property inputs
-    const onNewPropKeyChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-        setNewPropKey(e.target.value);
-    const onNewPropValueChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-        setNewPropValue(e.target.value);
+    function setExtraPropValue(name: string, value: string) {
+        setExtraProps((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    }
 
     // Add new property to extraProps
     const addNewProperty = () => {
-        const key = newPropKey.trim();
+        const key = normalizePropertyKey(newPropKey);
         if (!key) return;
 
         setExtraProps((prev) => ({
@@ -354,15 +379,12 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
                             <label htmlFor={`extra-${key}`} className="form-label">
                                 {key.replace(/_/g, ' ')}
                             </label>
-                            <input
+                            <PropertyAutocompleteInput
                                 id={`extra-${key}`}
                                 name={key}
-                                type="text"
-                                className="form-control"
-                                value={value}
-                                onChange={(e) =>
-                                    setExtraProps((prev) => ({ ...prev, [key]: e.target.value }))
-                                }
+                                value={String(value ?? '')}
+                                options={propertyOptions[key] ?? []}
+                                onValueChange={(nextValue) => setExtraPropValue(key, nextValue)}
                             />
                         </div>
                         <button
@@ -386,25 +408,29 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
 
                 {/* Add new property */}
                 <div className="input-group mb-3">
-                    <input
-                        type="text"
-                        className="form-control"
+                    <PropertyAutocompleteInput
+                        id="new-property-name"
+                        name="new-property-name"
+                        wrapperClassName="flex-grow-1"
                         placeholder="New property name"
                         value={newPropKey}
-                        onChange={onNewPropKeyChange}
+                        options={customPropertyNameOptions}
+                        onValueChange={setNewPropKey}
                     />
-                    <input
-                        type="text"
-                        className="form-control"
+                    <PropertyAutocompleteInput
+                        id="new-property-value"
+                        name="new-property-value"
+                        wrapperClassName="flex-grow-1"
                         placeholder="New property value"
                         value={newPropValue}
-                        onChange={onNewPropValueChange}
+                        options={propertyOptions[normalizePropertyKey(newPropKey)] ?? []}
+                        onValueChange={setNewPropValue}
                     />
                     <button
                         type="button"
                         className="btn btn-primary"
                         onClick={addNewProperty}
-                        disabled={!newPropKey.trim()}
+                        disabled={!normalizePropertyKey(newPropKey)}
                     >
                         Add Property
                     </button>
