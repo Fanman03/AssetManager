@@ -65,7 +65,7 @@ export default async function SitePage({ params, searchParams }: SitePageProps) 
   const addressUrl = addressLines.length
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressLines.join(' '))}`
     : null;
-  const hasSiteDetails = addressLines.length > 0 || Boolean(site?.contacts?.length) || Boolean(site?.notes);
+  const hasSiteDetails = addressLines.length > 0 || Boolean(site?.notes) || Boolean(site?.contacts?.length);
   const groupedAssets = Array.from(
     sortedAssets.reduce((groups, asset) => {
       const location = getLocationName(asset.Location);
@@ -112,9 +112,22 @@ export default async function SitePage({ params, searchParams }: SitePageProps) 
               </div>
             )}
 
+            {site?.notes && (
+              <div className="col-12 col-md-4">
+                <h2 className="h5">
+                  <i className="bi bi-sticky me-2"></i>
+                  Notes
+                </h2>
+                <div dangerouslySetInnerHTML={{ __html: md.render(site.notes) }} />
+              </div>
+            )}
+
             {site?.contacts?.length ? (
               <div className="col-12 col-md-4">
-                <h2 className="h5">Contacts</h2>
+                <h2 className="h5">
+                  <i className="bi bi-person me-2"></i>
+                  Contact{site.contacts.length === 1 ? '' : 's'}
+                </h2>
                 {site.contacts.map((contact, index) => (
                   <p className="mb-2" key={`${contact.name}-${index}`}>
                     {contact.name && <strong>{contact.name}</strong>}
@@ -135,13 +148,6 @@ export default async function SitePage({ params, searchParams }: SitePageProps) 
                 ))}
               </div>
             ) : null}
-
-            {site?.notes && (
-              <div className="col-12 col-md-4">
-                <h2 className="h5">Notes</h2>
-                <p>{site.notes}</p>
-              </div>
-            )}
           </section>
         ) : (
           <div className="alert alert-secondary" role="status">

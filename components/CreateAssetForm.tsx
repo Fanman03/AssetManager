@@ -33,6 +33,7 @@ interface Props {
 export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
     const router = useRouter();
     const isNavigatingAfterSave = useRef(false);
+    const purchaseDateInputRef = useRef<HTMLInputElement | null>(null);
     const { dialogElement, showConfirm } = useAppDialog();
 
     const initialFormData = useMemo(() => ({
@@ -174,6 +175,20 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
         }));
     }
 
+    function openPurchaseDatePicker() {
+        const input = purchaseDateInputRef.current;
+        if (!input) return;
+
+        input.focus();
+        if ('showPicker' in input) {
+            try {
+                input.showPicker();
+            } catch {
+                // Some browsers can reject showPicker despite a click; focus still helps.
+            }
+        }
+    }
+
     function setExtraPropValue(name: string, value: string) {
         setExtraProps((prev) => ({
             ...prev,
@@ -276,9 +291,10 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
                     />
                 </div>
 
-                <div className="mb-3">
+                <div className="mb-3" onClick={openPurchaseDatePicker}>
                     <label htmlFor="Purchase_Date" className="form-label">Purchase Date</label>
                     <input
+                        ref={purchaseDateInputRef}
                         id="Purchase_Date"
                         name="Purchase_Date"
                         type="date"
@@ -358,7 +374,7 @@ export default function CreateAssetForm({ defaultId, propertyOptions }: Props) {
                             }}
                             title="Remove property"
                         >
-                            <i className="bi bi-x"></i>
+                            <i className="bi bi-trash"></i>
                         </button>
                     </div>
                 ))}

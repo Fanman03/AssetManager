@@ -192,15 +192,6 @@ export async function saveSite(originalId: string, data: Partial<Site>): Promise
     const col = db.collection<Site>('sites');
     const normalizedOriginalId = makeSiteId(originalId);
     const existingOriginal = normalizedOriginalId ? await col.findOne({ _id: normalizedOriginalId }) : null;
-    const aliases = Array.from(
-      new Set([
-        ...(site.aliases ?? []),
-        ...(existingOriginal?.aliases ?? []),
-        existingOriginal?.name,
-        site.name,
-      ].map(alias => String(alias ?? '').trim()).filter(Boolean))
-    );
-    site.aliases = aliases;
 
     if (normalizedOriginalId && normalizedOriginalId !== site._id) {
       await col.deleteOne({ _id: normalizedOriginalId });

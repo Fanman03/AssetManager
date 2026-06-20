@@ -4,17 +4,32 @@ import React, { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateSite } from '@/actions/updateSite';
 import { makeSiteId } from '@/lib/siteUtils';
-import type { Site } from '@/types/site';
+import type { Site, SiteContact } from '@/types/site';
 import { useAppDialog } from './AppDialog';
 
 type EditSiteFormProps = {
   site: Site;
 };
 
+type ContactFormData = Required<SiteContact>;
+
+const blankContact = (): ContactFormData => ({
+  name: '',
+  role: '',
+  email: '',
+  phone: '',
+});
+
+const normalizeContact = (contact: SiteContact): ContactFormData => ({
+  name: contact.name || '',
+  role: contact.role || '',
+  email: contact.email || '',
+  phone: contact.phone || '',
+});
+
 export default function EditSiteForm({ site }: EditSiteFormProps) {
   const router = useRouter();
   const { dialogElement, showAlert } = useAppDialog();
-  const primaryContact = site.contacts?.[0] ?? {};
 
   const initialFormData = useMemo(() => ({
     name: site.name || '',
@@ -25,20 +40,39 @@ export default function EditSiteForm({ site }: EditSiteFormProps) {
     region: site.address?.region || '',
     postalCode: site.address?.postalCode || '',
     country: site.address?.country || '',
-    contactName: primaryContact.name || '',
-    contactRole: primaryContact.role || '',
-    contactEmail: primaryContact.email || '',
-    contactPhone: primaryContact.phone || '',
     notes: site.notes || '',
-  }), [primaryContact.email, primaryContact.name, primaryContact.phone, primaryContact.role, site]);
+  }), [site]);
+
+  const initialContacts = useMemo(
+    () => (site.contacts?.length ? site.contacts.map(normalizeContact) : [blankContact()]),
+    [site.contacts]
+  );
 
   const [formData, setFormData] = useState(initialFormData);
+  const [contacts, setContacts] = useState<ContactFormData[]>(initialContacts);
   const [saving, setSaving] = useState(false);
   const siteId = makeSiteId(formData.name);
 
   function onChange(event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = event.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  }
+
+  function onContactChange(index: number, field: keyof ContactFormData, value: string) {
+    setContacts(prev => prev.map((contact, contactIndex) => (
+      contactIndex === index ? { ...contact, [field]: value } : contact
+    )));
+  }
+
+  function addContact() {
+    setContacts(prev => [...prev, blankContact()]);
+  }
+
+  function removeContact(index: number) {
+    setContacts(prev => {
+      const next = prev.filter((_, contactIndex) => contactIndex !== index);
+      return next.length ? next : [blankContact()];
+    });
   }
 
   async function onSubmit(event: React.FormEvent) {
@@ -51,14 +85,15 @@ export default function EditSiteForm({ site }: EditSiteFormProps) {
         .map(alias => alias.trim())
         .filter(Boolean);
 
-      const contact = {
-        name: formData.contactName.trim(),
-        role: formData.contactRole.trim(),
-        email: formData.contactEmail.trim(),
-        phone: formData.contactPhone.trim(),
-      };
+      const savedContacts = contacts
+        .map(contact => ({
+          name: contact.name.trim(),
+          role: contact.role.trim(),
+          email: contact.email.trim(),
+          phone: contact.phone.trim(),
+        }))
+        .filter(contact => Object.values(contact).some(Boolean));
 
-      const hasContact = Object.values(contact).some(Boolean);
       const saved = await updateSite(site._id, {
         name: formData.name,
         aliases,
@@ -70,7 +105,7 @@ export default function EditSiteForm({ site }: EditSiteFormProps) {
           postalCode: formData.postalCode,
           country: formData.country,
         },
-        contacts: hasContact ? [contact] : [],
+        contacts: savedContacts,
         notes: formData.notes,
       });
 
@@ -129,35 +164,77 @@ export default function EditSiteForm({ site }: EditSiteFormProps) {
           </div>
         </div>
 
-        <h2 className="h5 mt-4">Primary Contact</h2>
-        <div className="row g-3">
-          <div className="col-12 col-md-6">
-            <label htmlFor="contactName" className="form-label">Name</label>
-            <input id="contactName" name="contactName" className="form-control" value={formData.contactName} onChange={onChange} />
-          </div>
-          <div className="col-12 col-md-6">
-            <label htmlFor="contactRole" className="form-label">Role</label>
-            <input id="contactRole" name="contactRole" className="form-control" value={formData.contactRole} onChange={onChange} />
-          </div>
-          <div className="col-12 col-md-6">
-            <label htmlFor="contactEmail" className="form-label">Email</label>
-            <input id="contactEmail" name="contactEmail" type="email" className="form-control" value={formData.contactEmail} onChange={onChange} />
-          </div>
-          <div className="col-12 col-md-6">
-            <label htmlFor="contactPhone" className="form-label">Phone</label>
-            <input id="contactPhone" name="contactPhone" className="form-control" value={formData.contactPhone} onChange={onChange} />
-          </div>
-        </div>
-
+        <h2 className="h5 mt-4">Notes</h2>
         <div className="mb-3 mt-3">
-          <label htmlFor="notes" className="form-label">Notes</label>
+          <label htmlFor="notes" className="form-label">Note text</label>
           <textarea id="notes" name="notes" className="form-control" value={formData.notes} onChange={onChange} />
         </div>
 
-        <button className="btn btn-primary" type="submit" disabled={saving || !siteId}>
-          <i className="bi bi-floppy me-2"></i>
-          {saving ? 'Saving...' : 'Save Site'}
-        </button>
+        <div className="d-flex align-items-center justify-content-between gap-3 mt-4">
+          <h2 className="h5 mb-0">Contact{contacts.length === 1 ? '' : 's'}</h2>
+          <button className="btn btn-secondary btn-sm" type="button" onClick={addContact}>
+            <i className="bi bi-plus-lg me-2"></i>
+            Add Contact
+          </button>
+        </div>
+
+        {contacts.map((contact, index) => (
+          <div className="row g-3 mt-1 pt-3 border-top" key={index}>
+            <div className="col-12 d-flex justify-content-between align-items-center">
+              <h3 className="h6 mb-0">Contact {index + 1}</h3>
+              {contacts.length > 1 && (
+                <button className="btn btn-outline-danger btn-sm" type="button" onClick={() => removeContact(index)}>
+                  <i className="bi bi-trash me-2"></i>
+                  Remove
+                </button>
+              )}
+            </div>
+            <div className="col-12 col-md-6">
+              <label htmlFor={`contact-${index}-name`} className="form-label">Name</label>
+              <input
+                id={`contact-${index}-name`}
+                className="form-control"
+                value={contact.name}
+                onChange={(event) => onContactChange(index, 'name', event.target.value)}
+              />
+            </div>
+            <div className="col-12 col-md-6">
+              <label htmlFor={`contact-${index}-role`} className="form-label">Role</label>
+              <input
+                id={`contact-${index}-role`}
+                className="form-control"
+                value={contact.role}
+                onChange={(event) => onContactChange(index, 'role', event.target.value)}
+              />
+            </div>
+            <div className="col-12 col-md-6">
+              <label htmlFor={`contact-${index}-email`} className="form-label">Email</label>
+              <input
+                id={`contact-${index}-email`}
+                type="email"
+                className="form-control"
+                value={contact.email}
+                onChange={(event) => onContactChange(index, 'email', event.target.value)}
+              />
+            </div>
+            <div className="col-12 col-md-6">
+              <label htmlFor={`contact-${index}-phone`} className="form-label">Phone</label>
+              <input
+                id={`contact-${index}-phone`}
+                className="form-control"
+                value={contact.phone}
+                onChange={(event) => onContactChange(index, 'phone', event.target.value)}
+              />
+            </div>
+          </div>
+        ))}
+
+        <div className="mt-4 mb-4">
+          <button className="btn btn-primary" type="submit" disabled={saving || !siteId}>
+            <i className="bi bi-floppy me-2"></i>
+            {saving ? 'Saving...' : 'Save Site'}
+          </button>
+        </div>
       </form>
     </div>
   );

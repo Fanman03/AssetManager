@@ -34,6 +34,7 @@ interface EditAssetFormProps {
 export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormProps) {
     const router = useRouter();
     const isNavigatingAfterSave = useRef(false);
+    const purchaseDateInputRef = useRef<HTMLInputElement | null>(null);
     const { dialogElement, showConfirm } = useAppDialog();
 
     // Known fields state
@@ -190,6 +191,20 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
             ...prev,
             [name]: value,
         }));
+    }
+
+    function openPurchaseDatePicker() {
+        const input = purchaseDateInputRef.current;
+        if (!input) return;
+
+        input.focus();
+        if ('showPicker' in input) {
+            try {
+                input.showPicker();
+            } catch {
+                // Some browsers can reject showPicker despite a click; focus still helps.
+            }
+        }
     }
 
     function setExtraPropValue(name: string, value: string) {
@@ -367,11 +382,12 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
                 </div>
 
                 {/* Purchase Date */}
-                <div className="mb-3">
+                <div className="mb-3" onClick={openPurchaseDatePicker}>
                     <label htmlFor="Purchase_Date" className="form-label">
                         Purchase Date
                     </label>
                     <input
+                        ref={purchaseDateInputRef}
                         id="Purchase_Date"
                         name="Purchase_Date"
                         type="date"
@@ -417,7 +433,7 @@ export default function EditAssetForm({ asset, propertyOptions }: EditAssetFormP
                             }}
                             title="Remove property"
                         >
-                            <i className="bi bi-x"></i>
+                            <i className="bi bi-trash"></i>
                         </button>
                     </div>
                 ))}
