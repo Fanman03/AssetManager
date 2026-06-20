@@ -19,6 +19,19 @@ type Props = {
 type ItemsPerPage = number | 'all';
 type AdvancedFilterMenu = 'status' | 'brand' | 'model' | 'site';
 
+const sortOptions = ['Default', 'Oldest', 'Newest'] as const;
+const queryFilterKeys = [
+  'search',
+  'sortOption',
+  'itemsPerPage',
+  'sortField',
+  'sortDirection',
+  'statusFilter',
+  'brandFilter',
+  'modelFilter',
+  'siteFilter',
+] as const;
+
 const statusFilterOptions = [
   { value: '0', label: 'Spare' },
   { value: '1', label: 'Active' },
@@ -29,8 +42,17 @@ const statusFilterOptions = [
   { value: '6', label: 'Broken' },
 ];
 
+const getQueryParam = (name: string): string | null => {
+  if (typeof window === 'undefined') return null;
+  return new URLSearchParams(window.location.search).get(name);
+};
+
+const getStoredValue = (name: string): string | undefined => {
+  return getQueryParam(name) ?? Cookies.get(name);
+};
+
 const getInitialItemsPerPage = (): ItemsPerPage => {
-  const savedItemsPerPage = Cookies.get('itemsPerPage');
+  const savedItemsPerPage = getStoredValue('itemsPerPage');
 
   if (savedItemsPerPage === 'all') {
     return 'all';
@@ -56,23 +78,27 @@ const getUniqueAssetOptions = (assets: Asset[], field: keyof Asset): string[] =>
 export default function ClientAssetList({ initialAssets }: Props) {
   const router = useRouter();
   const advancedFiltersRef = useRef<HTMLDivElement | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOption, setSortOption] = useState(() => Cookies.get('sortOption') || 'Default');
+  const [searchTerm, setSearchTerm] = useState(() => getQueryParam('search') || '');
+  const [sortOption, setSortOption] = useState(() => {
+    const storedSortOption = getStoredValue('sortOption');
+    return sortOptions.includes(storedSortOption as typeof sortOptions[number]) ? storedSortOption as typeof sortOptions[number] : 'Default';
+  });
   const [itemsPerPage, setItemsPerPage] = useState<ItemsPerPage>(getInitialItemsPerPage);
   const [sortField, setSortField] = useState<keyof Asset | null>(() => {
-    const sf = Cookies.get('sortField');
+    const sf = getStoredValue('sortField');
     return sf ? (sf as keyof Asset) : null;
   });
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(() => {
-    const dir = Cookies.get('sortDirection');
+    const dir = getStoredValue('sortDirection');
     return dir === 'desc' ? 'desc' : 'asc';
   });
   const [statusFilter, setStatusFilter] = useState(() => {
-    return Cookies.get('statusFilter') || (Cookies.get('showInServiceOnly') === 'true' ? '1' : '');
+    const queryStatusFilter = getQueryParam('statusFilter');
+    return queryStatusFilter ?? Cookies.get('statusFilter') ?? (Cookies.get('showInServiceOnly') === 'true' ? '1' : '');
   });
-  const [brandFilter, setBrandFilter] = useState(() => Cookies.get('brandFilter') || '');
-  const [modelFilter, setModelFilter] = useState(() => Cookies.get('modelFilter') || '');
-  const [siteFilter, setSiteFilter] = useState(() => Cookies.get('siteFilter') || '');
+  const [brandFilter, setBrandFilter] = useState(() => getStoredValue('brandFilter') || '');
+  const [modelFilter, setModelFilter] = useState(() => getStoredValue('modelFilter') || '');
+  const [siteFilter, setSiteFilter] = useState(() => getStoredValue('siteFilter') || '');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [openFilterMenu, setOpenFilterMenu] = useState<AdvancedFilterMenu | null>(null);
   const [filteredAssets, setFilteredAssets] = useState(initialAssets);
@@ -115,19 +141,33 @@ export default function ClientAssetList({ initialAssets }: Props) {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (searchTerm) {
-      params.set('search', searchTerm);
-    } else {
-      params.delete('search');
-    }
-    router.replace(`?${params.toString()}`, { scroll: false });
-  }, [searchTerm]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlSearch = params.get('search');
-    if (urlSearch) setSearchTerm(urlSearch);
-  }, []);
+    const setOrDeleteParam = (name: typeof queryFilterKeys[number], value: string, defaultValue = '') => {
+      if (value && value !== defaultValue) {
+        params.set(name, value);
+      } else {
+        params.delete(name);
+      }
+    };
+
+    setOrDeleteParam('search', searchTerm);
+    setOrDeleteParam('sortOption', sortOption, 'Default');
+    setOrDeleteParam('itemsPerPage', String(itemsPerPage), '25');
+    setOrDeleteParam('sortField', sortField ? String(sortField) : '');
+    setOrDeleteParam('sortDirection', sortDirection, 'asc');
+    setOrDeleteParam('statusFilter', statusFilter);
+    setOrDeleteParam('brandFilter', brandFilter);
+    setOrDeleteParam('modelFilter', modelFilter);
+    setOrDeleteParam('siteFilter', siteFilter);
+
+    const query = params.toString();
+    const nextUrl = query ? `?${query}` : window.location.pathname;
+    const currentUrl = `${window.location.pathname}${window.location.search}`;
+
+    if (nextUrl !== currentUrl) {
+      router.replace(nextUrl, { scroll: false });
+    }
+  }, [searchTerm, sortOption, itemsPerPage, sortField, sortDirection, statusFilter, brandFilter, modelFilter, siteFilter, router]);
 
   useEffect(() => {
     let result: Asset[];
@@ -333,6 +373,27 @@ export default function ClientAssetList({ initialAssets }: Props) {
     setOpenFilterMenu((current) => (current === menu ? null : menu));
   };
 
+  const resetFilters = () => {
+    [
+      'searchTerm',
+      'sortOption',
+      'sortField',
+      'sortDirection',
+      'itemsPerPage',
+      'showInServiceOnly',
+      'statusFilter',
+      'brandFilter',
+      'modelFilter',
+      'locationFilter',
+      'siteFilter',
+    ].forEach(name => Cookies.remove(name));
+
+    const params = new URLSearchParams(window.location.search);
+    queryFilterKeys.forEach(key => params.delete(key));
+    const query = params.toString();
+    window.location.href = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+  };
+
 
   return (
     <>
@@ -359,7 +420,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
                     {sortOption}
                   </button>
                   <ul className="dropdown-menu">
-                    {['Default', 'Oldest', 'Newest'].map(opt => (
+                    {sortOptions.map(opt => (
                       <li key={opt}>
                         <button className="dropdown-item" onClick={() => {
                           setSortOption(opt);
@@ -420,20 +481,7 @@ export default function ClientAssetList({ initialAssets }: Props) {
             >
               Filters{advancedFilterCount > 0 ? ` (${advancedFilterCount})` : ''}
             </button>
-            <button className="btn btn-secondary" onClick={() => {
-              Cookies.remove('searchTerm');
-              Cookies.remove('sortOption');
-              Cookies.remove('sortField');
-              Cookies.remove('sortDirection');
-              Cookies.remove('itemsPerPage');
-              Cookies.remove('showInServiceOnly');
-              Cookies.remove('statusFilter');
-              Cookies.remove('brandFilter');
-              Cookies.remove('modelFilter');
-              Cookies.remove('locationFilter');
-              Cookies.remove('siteFilter');
-              location.reload();
-            }}>Reset Filters</button>
+            <button className="btn btn-secondary" onClick={resetFilters}>Reset Filters</button>
           </div>
           <div
             id="advancedFilters"
@@ -592,12 +640,11 @@ export default function ClientAssetList({ initialAssets }: Props) {
             </div>
         </div>
 
-        <div className="d-flex justify-content-between align-items-center my-2 px-2">
-          {sortedAssets.length > 0 && (
+        {sortedAssets.length > 0 && (
+          <div className="d-flex justify-content-between align-items-center my-2 px-2">
             <p className="text-muted my-auto">
               Showing {startIndex + 1}–{endIndex} of {sortedAssets.length} item{sortedAssets.length !== 1 && 's'}
             </p>
-          )}
           <nav>
             <ul className="pagination mb-0">
               <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
@@ -639,7 +686,8 @@ export default function ClientAssetList({ initialAssets }: Props) {
               </li>
             </ul>
           </nav>
-        </div>
+          </div>
+        )}
         {sortedAssets.length > 0 ? (
           <div className="table-responsive">
             <table className="table table-hover table-striped">
@@ -692,7 +740,12 @@ export default function ClientAssetList({ initialAssets }: Props) {
             </table>
           </div>
         ) : (
-          <h3 className="text-center text-muted">No results found.</h3>
+          <div className="text-center my-5">
+            <h3 className="text-muted mb-1">No assets found.</h3>
+            <button className="btn btn-link btn-sm p-0" type="button" onClick={resetFilters}>
+              Reset filters
+            </button>
+          </div>
         )}
 
         {(endIndex - startIndex) > 24 && (

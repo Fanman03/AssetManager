@@ -241,7 +241,7 @@ export default function SettingsContent() {
                             <span className="text-white">Checking...</span>
                         )}
                     </p>
-                    <p>
+                    <div className="my-2">
                         <h4>Asset Data</h4>
                         <button
                             className="btn btn-primary me-2 my-2"
@@ -265,8 +265,8 @@ export default function SettingsContent() {
                         <button className="btn btn-success me-2 my-2" onClick={handleExportCSV}>
                             <i className="bi bi-filetype-csv me-2"></i>Export Assets to CSV
                         </button>
-                    </p>
-                    <p>
+                    </div>
+                    <div className="my-2">
                         <h4>Site Data</h4>
                         <button
                             className="btn btn-primary me-2 my-2"
@@ -287,7 +287,7 @@ export default function SettingsContent() {
                                 disabled={importingSites || !authorized}
                             />
                         </label>
-                    </p>
+                    </div>
                 </section>
             </div>
             {dialogElement}

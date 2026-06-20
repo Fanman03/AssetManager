@@ -3,6 +3,7 @@ import Navbar from '@/components/Navbar';
 import { getAssetsBySiteId, getSiteById } from '@/lib/db';
 import { makeSiteId } from '@/lib/siteUtils';
 import type { SiteAddress } from '@/types/site';
+import markdownit from 'markdown-it';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +46,7 @@ const getLocationName = (location: unknown) => String(location ?? '').trim();
 export default async function SitePage({ params, searchParams }: SitePageProps) {
   const { sitename } = await params;
   const query = await searchParams;
+  const md = markdownit();
   const isGroupedByLocation = query?.groupBy === 'location';
   const siteId = makeSiteId(decodeURIComponent(sitename));
   const site = await getSiteById(siteId);
@@ -183,7 +185,7 @@ export default async function SitePage({ params, searchParams }: SitePageProps) 
                         <td><Link href={`/${asset._id}`}>{asset._id}</Link></td>
                         <td>{asset.Brand}</td>
                         <td>{asset.Model}</td>
-                        <td>{asset.Description}</td>
+                        <td dangerouslySetInnerHTML={{ __html: md.renderInline(asset.Description) }} />
                       </tr>
                     ))}
                   </tbody>
@@ -212,7 +214,7 @@ export default async function SitePage({ params, searchParams }: SitePageProps) 
                     <td>{asset.Brand}</td>
                     <td>{asset.Model}</td>
                     <td>{asset.Location}</td>
-                    <td>{asset.Description}</td>
+                    <td dangerouslySetInnerHTML={{ __html: md.renderInline(asset.Description) }} />
                   </tr>
                 ))}
               </tbody>
