@@ -71,107 +71,115 @@ const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-    <nav className="navbar navbar-expand-lg bg-primary">
-      {hideLogin ? (
-        <style>{`#logoutBtn, #loginBtn {display: none !important};`}</style>
-      ) : (<></>)}
-      <div className="container d-flex align-items-center">
-        {/* Brand on the left */}
-        <a className="navbar-brand text-white me-auto" href="/">
-          <i className="bi bi-pc-display me-2"></i>
-          <span>{appName}</span>
-        </a>
+      <nav className="navbar navbar-expand-lg bg-primary">
+        {hideLogin ? (
+          <style>{`#logoutBtn, #loginBtn {display: none !important};`}</style>
+        ) : (<></>)}
+        <div className="container d-flex align-items-center">
+          {/* Brand on the left */}
+          <a className="navbar-brand text-white me-auto" href="/">
+            <i className="bi bi-pc-display me-2"></i>
+            <span>{appName}</span>
+          </a>
 
-        {/* Right side group: search + login/logout */}
-        {variant === 'default' ? (
-          <div className="d-flex align-items-center searchBarContainer">
-            <form
-              className="form-inline my-2 my-lg-0"
-              id="searchBar"
-              onSubmit={handleSubmit}
-            >
-              <div className="input-group">
-                <span className="input-group-text">
-                  <i className="bi bi-search"></i>
-                </span>
-                <input
-                  className="form-control"
-                  type="search"
-                  id="search"
-                  placeholder="Search"
-                  aria-label="Search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </form>
+          {/* Right side group: search + login/logout */}
+          {variant === 'default' ? (
+            <div className="d-flex align-items-center searchBarContainer">
+              <form
+                className="form-inline my-2 my-lg-0"
+                id="searchBar"
+                onSubmit={handleSubmit}
+              >
+                <div className="input-group">
+                  <span className="input-group-text">
+                    <i className="bi bi-search"></i>
+                  </span>
+                  <input
+                    className="form-control"
+                    type="search"
+                    id="search"
+                    placeholder="Search"
+                    aria-label="Search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </form>
 
-            {authorized ? (
-              <>
+              {authorized ? (
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-outline-light"
+                    id="logoutBtn"
+                    onClick={handleLogout}
+                    aria-label="Logout"
+                    title="Logout"
+                  >
+                    <i className="bi bi-person-badge" aria-hidden="true"></i>
+                  </button>
+                  <a
+                    type="button"
+                    className="btn btn-outline-light ms-2"
+                    id="settingsBtn"
+                    href="/settings"
+                    title="Settings"
+                  >
+                    <i className="bi bi-gear"></i>
+                  </a></>
+
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-outline-light"
+                  id="loginBtn"
+                  onClick={handleLoginClick}
+                  aria-label="Login"
+                  title="Login"
+                >
+                  <i className="bi bi-person-badge-fill" aria-hidden="true"></i>
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="d-flex align-items-center">
+              <button
+                type="button"
+                className="btn btn-link navbar-brand text-white text-decoration-none p-0 me-3"
+                onClick={handleBackClick}
+              >
+                <i className="bi bi-arrow-left me-2"></i>
+                <span>Back</span>
+              </button>
+
+              {authorized ? (
                 <button
                   type="button"
                   className="btn btn-outline-light"
                   id="logoutBtn"
                   onClick={handleLogout}
+                  aria-label="Logout"
+                  title="Logout"
                 >
-                  Logout
+                  <i className="bi bi-box-arrow-right" aria-hidden="true"></i>
                 </button>
-                <a
+              ) : (
+                <button
                   type="button"
-                  className="btn btn-outline-light ms-2"
-                  id="settingsBtn"
-                  href="/settings"
-                  title="Settings"
+                  className="btn btn-outline-light"
+                  id="loginBtn"
+                  onClick={handleLoginClick}
+                  aria-label="Login"
+                  title="Login"
                 >
-                  <i className="bi bi-gear"></i>
-                </a></>
-
-            ) : (
-              <button
-                type="button"
-                className="btn btn-outline-light"
-                id="loginBtn"
-                onClick={handleLoginClick}
-              >
-                Login
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="d-flex align-items-center">
-            <button
-              type="button"
-              className="btn btn-link navbar-brand text-white text-decoration-none p-0 me-3"
-              onClick={handleBackClick}
-            >
-              <i className="bi bi-arrow-left me-2"></i>
-              <span>Back</span>
-            </button>
-
-            {authorized ? (
-              <button
-                type="button"
-                className="btn btn-outline-light"
-                id="logoutBtn"
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-outline-light"
-                id="loginBtn"
-                onClick={handleLoginClick}
-              >
-                Login
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    </nav>
-    {dialogElement}
+                  <i className="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </nav>
+      {dialogElement}
     </>
   );
 };

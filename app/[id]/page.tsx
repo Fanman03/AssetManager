@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import AssetDeleteButton from '@/components/AssetDeleteButton';
 import AssetCloneButton from '@/components/AssetCloneButton';
 import markdownit from 'markdown-it';
+import type { ReactNode } from 'react';
 
 const StatusMap: Record<number, { icon: string; className: string; label: string }> = {
   0: { icon: 'check-circle-fill', className: 'text-info', label: 'Spare' },
@@ -42,6 +43,57 @@ const statusText = (status?: number) => {
   };
 
   return data.label;
+};
+
+const markdownLinkPattern = /\[([^\]\n]+)\]\(([^\s)]+)\)/g;
+
+const isSafeLinkHref = (href: string) => {
+  return (
+    href.startsWith('/') ||
+    href.startsWith('http://') ||
+    href.startsWith('https://') ||
+    href.startsWith('mailto:') ||
+    href.startsWith('tel:')
+  );
+};
+
+const renderMarkdownLinks = (value: string): ReactNode => {
+  const parts: ReactNode[] = [];
+  let lastIndex = 0;
+
+  for (const match of value.matchAll(markdownLinkPattern)) {
+    const [fullMatch, label, href] = match;
+    const index = match.index ?? 0;
+
+    if (!isSafeLinkHref(href)) continue;
+
+    if (index > lastIndex) {
+      parts.push(value.slice(lastIndex, index));
+    }
+
+    const isExternal = href.startsWith('http://') || href.startsWith('https://');
+    parts.push(
+      <a
+        href={href}
+        key={`${href}-${index}`}
+        target={isExternal ? '_blank' : undefined}
+        rel={isExternal ? 'noopener noreferrer' : undefined}
+      >
+        {label}
+      </a>
+    );
+    lastIndex = index + fullMatch.length;
+  }
+
+  if (lastIndex === 0) {
+    return value;
+  }
+
+  if (lastIndex < value.length) {
+    parts.push(value.slice(lastIndex));
+  }
+
+  return parts;
 };
 
 export default async function AssetPage({ params }: { params: Promise<{ id: string }> }) {
@@ -168,7 +220,7 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                     }
 
                     // Default rendering
-                    return strVal;
+                    return renderMarkdownLinks(strVal);
                   })()}
                 </td>
               </tr>
