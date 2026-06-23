@@ -161,7 +161,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   aria-label="Logout"
                   title="Logout"
                 >
-                  <i className="bi bi-box-arrow-right" aria-hidden="true"></i>
+                  <i className="bi bi-person-badge" aria-hidden="true"></i>
                 </button>
               ) : (
                 <button
@@ -172,7 +172,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   aria-label="Login"
                   title="Login"
                 >
-                  <i className="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+                  <i className="bi bi-person-badge-fill" aria-hidden="true"></i>
                 </button>
               )}
             </div>
