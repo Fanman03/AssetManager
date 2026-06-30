@@ -202,15 +202,24 @@ export default async function AssetPage({ params }: { params: Promise<{ id: stri
                     const isSerialKey = keyLower === 'serial' || keyLower === 'serial_number' || keyLower === 'serial number' || keyLower === 'service_tag' || keyLower === 's/n' || keyLower === 's/t' || keyLower === 'sn' || keyLower === 'st';
                     const isMacId = keyLower === 'mac' || keyLower === 'mac id' || keyLower === 'mac address' || keyLower === 'mac addr' || keyLower === 'hfc mac'
 
+                    const brandLower = Brand?.toLowerCase();
+                    const encodedSerial = encodeURIComponent(strVal);
+
                     // Special Dell support link for Serial/Serial_Number/Service_Tag
-                    if (Brand?.toLowerCase() === 'dell' && isSerialKey && strVal) {
-                      const dellUrl = `https://www.dell.com/support/home/en-us/product-support/servicetag/${strVal}/overview`;
+                    if (brandLower === 'dell' && isSerialKey && strVal) {
+                      const dellUrl = `https://www.dell.com/support/home/en-us/product-support/servicetag/${encodedSerial}/overview`;
                       return <a href={dellUrl} target="_blank" rel="noopener noreferrer">{strVal}</a>;
                     }
 
+                    // Special Apple support link for Serial/Serial_Number/Service_Tag
+                    if (brandLower === 'apple' && isSerialKey && strVal) {
+                      const appleUrl = `https://checkcoverage.apple.com/?sn=${encodedSerial}`;
+                      return <a href={appleUrl} target="_blank" rel="noopener noreferrer">{strVal}</a>;
+                    }
+
                     // Special HP support link for Serial/Serial_Number/Service_Tag
-                    if ((Brand?.toLowerCase() === 'hp' || Brand?.toLowerCase() === 'hewlett-packard') && isSerialKey && strVal) {
-                      const hpUrl = `https://partsurfer.hp.com/?searchtext=${strVal}`;
+                    if ((brandLower === 'hp' || brandLower === 'hewlett-packard') && isSerialKey && strVal) {
+                      const hpUrl = `https://partsurfer.hp.com/?searchtext=${encodedSerial}`;
                       return <a href={hpUrl} target="_blank" rel="noopener noreferrer">{strVal}</a>;
                     }
 
